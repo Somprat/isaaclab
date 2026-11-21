@@ -84,7 +84,9 @@ def download_assets(directory: Path) -> None:
     (directory / "sources.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
-def make_env_cfg(directory: Path, deployment: dict, output: Path, steps: int):
+def make_env_cfg(
+    directory: Path, deployment: dict, output: Path, steps: int, evaluate_gait: bool = False, backend: str = "physx"
+):
     """Build the robot with the published policy's joint order, pose, and gains."""
     from isaaclab_physx.physics import PhysxCfg
     from isaaclab_physx.sim.schemas import PhysxArticulationCfg, PhysxRigidBodyCfg
@@ -131,6 +133,7 @@ def make_env_cfg(directory: Path, deployment: dict, output: Path, steps: int):
             prim_path="{ENV_REGEX_NS}/Robot",
             spawn=sim_utils.UsdFileCfg(
                 usd_path=str(directory / "assets/g1_29dof_rev_1_0.usd"),
+                activate_contact_sensors=evaluate_gait,
                 rigid_props=PhysxRigidBodyCfg(
                     disable_gravity=False,
                     retain_accelerations=False,
@@ -175,8 +178,17 @@ def make_env_cfg(directory: Path, deployment: dict, output: Path, steps: int):
             use_default_offset=False,
         )
 
+    scene = SceneCfg(num_envs=1, env_spacing=2.5)
+    if evaluate_gait:
+        from isaaclab.sensors import ContactSensorCfg
+
+        scene.feet_contact = ContactSensorCfg(
+            prim_path="{ENV_REGEX_NS}/Robot/.*_ankle_roll_link",
+            update_period=deployment["step_dt"],
+        )
+
     cfg = ManagerBasedEnvCfg(
-        scene=SceneCfg(num_envs=1, env_spacing=2.5),
+        scene=scene,
         decimation=4,
         observations={"state": StateObservations()},
         actions=ActionsCfg(),
@@ -204,6 +216,28 @@ def make_env_cfg(directory: Path, deployment: dict, output: Path, steps: int):
         window_width=1280,
         window_height=720,
     )
+    if backend == "mjwarp":
+        from isaaclab_visualizers.newton import NewtonGLVisualizerCfg
+
+        from isaaclab.sim.spawners.materials import RigidBodyMaterialBaseCfg
+
+        from isaaclab_tasks.core.velocity.velocity_env_cfg import RoughPhysicsCfg
+
+        cfg.sim.physics = RoughPhysicsCfg().newton_mjwarp
+        cfg.sim.physics.solver_cfg.njmax = 300
+        cfg.sim.physics.solver_cfg.nconmax = 100
+        cfg.scene.ground.spawn.physics_material = RigidBodyMaterialBaseCfg(
+            static_friction=1.0, dynamic_friction=1.0, restitution=0.0
+        )
+        cfg.sim.default_visualizer_cfg = NewtonGLVisualizerCfg(
+            headless=True,
+            eye=(3.0, -3.0, 1.8),
+            lookat=(0.0, 0.0, 0.65),
+            window_width=1280,
+            window_height=720,
+            streaming_view=False,
+        )
+        cfg.video_recorders[0].source = "viz:newton_gl"
     return cfg, policy_names
 
 
@@ -216,7 +250,7 @@ def run(args, deployment: dict) -> None:
     from isaaclab.app import launch_simulation
 
     steps = round(args.duration / deployment["step_dt"])
-    cfg, policy_names = make_env_cfg(args.assets, deployment, args.output, steps)
+    cfg, policy_names = make_env_cfg(args.assets, deployment, args.output, steps, args.evaluate_gait, args.backend)
     options = ort.SessionOptions()
     options.intra_op_num_threads = 1
     options.inter_op_num_threads = 1
@@ -228,8 +262,10 @@ def run(args, deployment: dict) -> None:
     targets = (0.2, 0.5, 1.0)
     # Fixed feedforward calibration for this model/policy and the three requested speeds.
     # Keep target and actual policy input distinct in the recording's measurements.
-    policy_inputs = (0.27, 0.53, 1.05)
+    policy_inputs = targets if args.raw_commands else (0.27, 0.53, 1.05)
     samples = [[] for _ in targets]
+    fall = None
+    completed_steps = 0
     with launch_simulation(cfg, args):
         from isaaclab.envs import ManagerBasedEnv
 
@@ -240,6 +276,11 @@ def run(args, deployment: dict) -> None:
             if set(robot.joint_names) != set(policy_names):
                 raise ValueError(f"Robot/policy joints differ: {robot.joint_names}")
             joint_ids = [robot.joint_names.index(name) for name in policy_names]
+            if args.evaluate_gait:
+                feet = ["left_ankle_roll_link", "right_ankle_roll_link"]
+                foot_ids = [robot.body_names.index(name) for name in feet]
+                contacts = env.scene["feet_contact"]
+                contact_ids = [contacts.body_names.index(name) for name in feet]
             default = np.asarray(deployment["default_joint_pos"], dtype=np.float32)[None, :]
             last_action = np.zeros((1, 29), dtype=np.float32)
             histories = {}
@@ -255,6 +296,22 @@ def run(args, deployment: dict) -> None:
                         "height_m",
                         "upright",
                     ]
+                    + (
+                        [f"{side}_foot_{axis}_m" for side in ("left", "right") for axis in ("x", "y", "z")]
+                        + [
+                            "left_foot_normal_force_n",
+                            "right_foot_normal_force_n",
+                            "root_x_m",
+                            "root_y_m",
+                            "heading_rad",
+                            "yaw_rate_rad_s",
+                            "actual_vy_body_m_s",
+                            "actual_vx_world_m_s",
+                            "actual_vy_world_m_s",
+                        ]
+                        if args.evaluate_gait
+                        else []
+                    )
                 )
                 for step in range(steps):
                     segment = min(step * 3 // steps, 2)
@@ -280,8 +337,15 @@ def run(args, deployment: dict) -> None:
                     last_action = policy.run(None, {input_name: observation.astype(np.float32)})[0]
                     if not np.isfinite(last_action).all():
                         raise RuntimeError("Policy returned non-finite joint targets.")
-                    
+
+                    if args.backend == "mjwarp":
+                        pos = robot.data.root_link_pos_w.torch[0].cpu().tolist()
+                        env.sim.set_camera_view(eye=(pos[0] + 3, pos[1] - 3, 1.8), target=(pos[0], pos[1], 0.65))
                     env.step(torch.from_numpy(last_action).to(env.device))
+                    completed_steps = step + 1
+                    # IsaacLab uses xyzw quaternions; heading is the world yaw of the base.
+                    x, y, z, w = robot.data.root_link_quat_w.torch[0].cpu().tolist()
+                    heading = math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
                     actual = robot.data.root_lin_vel_b.torch[0, 0].item()
                     height = robot.data.root_link_pos_w.torch[0, 2].item()
                     upright = -robot.data.projected_gravity_b.torch[0, 2].item()
@@ -295,10 +359,26 @@ def run(args, deployment: dict) -> None:
                             height,
                             upright,
                         ]
+                        + (
+                            robot.data.body_link_pos_w.torch[0, foot_ids].cpu().numpy().reshape(-1).tolist()
+                            + contacts.data.net_normal_forces_w.torch[0, contact_ids, 2].cpu().numpy().tolist()
+                            + robot.data.root_link_pos_w.torch[0, :2].cpu().numpy().tolist()
+                            + [
+                                heading,
+                                robot.data.root_ang_vel_w.torch[0, 2].item(),
+                                robot.data.root_lin_vel_b.torch[0, 1].item(),
+                                robot.data.root_lin_vel_w.torch[0, 0].item(),
+                                robot.data.root_lin_vel_w.torch[0, 1].item(),
+                            ]
+                            if args.evaluate_gait
+                            else []
+                        )
                     )
                     samples[segment].append(actual)
                     if height < 0.4 or upright < 0.5:
-                        raise RuntimeError(f"Robot fell at step {step}: height={height:.3f}, upright={upright:.3f}")
+                        fall = {"time_s": completed_steps * env.step_dt, "height_m": height, "upright": upright}
+                        print(f"Stopping after fall: {fall}", flush=True)
+                        break
                     if step % 100 == 0:
                         print(
                             f"t={step * env.step_dt:.2f}s target={targets[segment]:.1f} "
@@ -307,8 +387,29 @@ def run(args, deployment: dict) -> None:
                         )
         finally:
             env.close()
+        metadata = {
+            "policy_sha256": hashlib.sha256((args.assets / "policy.onnx").read_bytes()).hexdigest(),
+            "physics_backend": "newton_mjwarp" if args.backend == "mjwarp" else "isaacsim_physx",
+            "duration_s": args.duration,
+            "completed_duration_s": completed_steps * deployment["step_dt"],
+            "segment_duration_s": args.duration / 3,
+            "settle_time_s": args.settle_time,
+            "seed": 42,
+            "control_dt_s": deployment["step_dt"],
+            "targets_m_s": targets,
+            "policy_inputs_m_s": policy_inputs,
+            "contact_on_n": 10,
+            "contact_off_n": 5,
+            "contact_debounce_s": 0.06,
+            "fall": fall,
+            "asset": str(args.assets / "assets/g1_29dof_rev_1_0.usd"),
+            "training": False,
+        }
+        (args.output / "evaluation_run.json").write_text(json.dumps(metadata, indent=2) + "\n")
         summary = []
         for speed, policy_input, velocities in zip(targets, policy_inputs, samples):
+            if not velocities:
+                continue
             # Exclude the first second after each abrupt command change for steady-state metrics.
             settled = np.asarray(velocities[min(50, len(velocities) // 2) :])
             summary.append(
@@ -321,6 +422,10 @@ def run(args, deployment: dict) -> None:
             )
         print(json.dumps(summary, indent=2), flush=True)
         print(f"Video and velocity measurements: {args.output}", flush=True)
+        if args.evaluate_gait:
+            from evaluate_g1_29dof_gait import summarize_gait
+
+            summarize_gait(args.output / "velocity_tracking.csv", args.settle_time)
 
 
 def main() -> None:
@@ -331,12 +436,24 @@ def main() -> None:
     parser.add_argument("--assets", type=Path, default=REPO_ROOT / "checkpoints/g1-29dof")
     parser.add_argument("--output", type=Path, default=REPO_ROOT.parents[1] / "unitree_rl_lab/videos/g1-29dof")
     parser.add_argument("--duration", type=float, default=20.0)
+    parser.add_argument("--backend", choices=("physx", "mjwarp"), default="physx")
     parser.add_argument("--download-only", action="store_true")
+    parser.add_argument("--evaluate-gait", action="store_true", help="Record foot contacts and summarize gait metrics.")
+    parser.add_argument(
+        "--raw-commands", action="store_true", help="Send target speeds without feedforward calibration."
+    )
+    parser.add_argument(
+        "--settle-time", type=float, default=2.0, help="Seconds excluded after each speed change for gait."
+    )
     add_launcher_args(parser)
     args = parser.parse_args()
     if not math.isfinite(args.duration) or args.duration < 3.0:
         parser.error("--duration must be finite and at least 3 seconds.")
+    if args.evaluate_gait and (not math.isfinite(args.settle_time) or not 0 <= args.settle_time < args.duration / 3):
+        parser.error("--settle-time must be finite, nonnegative, and shorter than each speed segment.")
     args.assets, args.output = args.assets.resolve(), args.output.resolve()
+    if not args.download_only and args.output.exists():
+        parser.error("Choose a new output directory to preserve existing results.")
     download_assets(args.assets)
     if not args.download_only:
         import yaml

@@ -1,0 +1,19 @@
+{
+  "checkpoint": "/home/choon/isaaclab/IsaacLab/logs/rsl_rl/g1_lipm_first050_2gpu/2026-10-29_22-36-50/model_1499.pt",
+  "duration_s": 20.0,
+  "steps": 1000,
+  "resets": 1,
+  "termination_events": [
+    {
+      "time_s": 20.0,
+      "terms": [
+        "time_out",
+        "reference_finished"
+      ]
+    }
+  ],
+  "training": false,
+  "motion": "/home/choon/isaaclab/LIP/generated_trajectories/steps_010_020_030_first050.npz",
+  "random_start": false,
+  "num_envs": 1
+}

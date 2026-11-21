@@ -1,0 +1,9 @@
+{
+  "num_envs": 2048,
+  "failed": 1649,
+  "completed": 399,
+  "root_heading_reward": 1.4241272737458568,
+  "torso_heading_reward": 0.625801505262266,
+  "first_episode_return": 116.00006103515625,
+  "earliest_fail_s": 5.019999980926514
+}

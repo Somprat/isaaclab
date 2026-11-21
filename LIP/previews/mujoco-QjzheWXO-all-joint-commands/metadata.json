@@ -1,0 +1,19 @@
+{
+  "source": "/home/choon/isaaclab/LIP/previews/g1-world-pose-QjzheWXO-499-immediate-state",
+  "mode": "all-commands",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "ik_iterations_per_frame": null,
+  "max_model_position_disagreement_m": 1.3714231070618169e-06,
+  "note": "All-commands mode applies recorded joint position targets for arms, legs, and waist, with measured pelvis pose. Commands mode applies arm targets with measured body joints. No physics or policy runs during replay. Recorded Cartesian targets are used without new capture.",
+  "post7": {
+    "left": {
+      "mean_error_m": 0.012641592103315863,
+      "max_error_m": 0.03511174621734621
+    },
+    "right": {
+      "mean_error_m": 0.027085622000976677,
+      "max_error_m": 0.039226688799874156
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "nominal_step_length_m": 0.2,
+  "nominal_step_width_m": 0.23701292276382446,
+  "first_step_duration_s": 0.4,
+  "first_landing_relative_to_left_foot_m": [
+    0.1601128849986316,
+    -0.5653123255799899,
+    7.498798913309288e-34
+  ],
+  "initial_com_acceleration_xy_mps2": [
+    0.6826695107358843,
+    -1.6262844641213523
+  ],
+  "initial_swing_velocity_estimate_mps": [
+    0.4002822124965791,
+    -0.8207485070404141,
+    0.06117935463105803
+  ],
+  "first_landing_com_velocity_mps": [
+    0.38463484758033706,
+    -0.9162935610018682,
+    0.0
+  ],
+  "first_landing_com_displacement_m": [
+    0.06537432099216556,
+    -0.15573749949288995,
+    0.0
+  ],
+  "double_support_samples": 0,
+  "training_readiness": {
+    "environments": 64,
+    "iterations": 20,
+    "transitions": 30720,
+    "checkpoint": "/home/choon/isaaclab/IsaacLab/logs/rsl_rl/g1_lipm_readiness/2026-10-29_00-14-18_grounded_startup_20iters/model_19.pt",
+    "checkpoint_tensors_finite": true,
+    "init_at_random_ep_len": false,
+    "final_logged_mean_episode_length_steps": 28.92,
+    "final_logged_mean_episode_length_s": 0.5784,
+    "interpretation": "Pipeline check from scratch; not evidence of learned walking or reference feasibility."
+  }
+}

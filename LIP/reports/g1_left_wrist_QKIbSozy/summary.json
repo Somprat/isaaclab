@@ -1,0 +1,62 @@
+{
+  "left": {
+    "roll": {
+      "mean_deg": -0.972848900480527,
+      "min_deg": -5.783289363658108,
+      "max_deg": 1.6326490388904147,
+      "ref_mean_deg": -0.8832483563651676,
+      "tracking_rmse_deg": 2.1298929547973797,
+      "max_torque_Nm": 0.3453792631626129,
+      "min_limit_margin_deg": 95.91670851451508
+    },
+    "pitch": {
+      "mean_deg": 46.16691686068598,
+      "min_deg": 28.331971309313268,
+      "max_deg": 58.783934299255534,
+      "ref_mean_deg": 45.94301238130321,
+      "tracking_rmse_deg": 4.769277838574354,
+      "max_torque_Nm": 0.9483122825622559,
+      "min_limit_margin_deg": 24.466065456065834
+    },
+    "yaw": {
+      "mean_deg": -0.2808700744976537,
+      "min_deg": -2.5802567844549955,
+      "max_deg": 1.7913861570178018,
+      "ref_mean_deg": -0.2170862392674974,
+      "tracking_rmse_deg": 1.813536020483948,
+      "max_torque_Nm": 0.22660516202449799,
+      "min_limit_margin_deg": 80.6697455321873
+    },
+    "combined_axis_bend_mean_deg": 46.17593563124929
+  },
+  "right": {
+    "roll": {
+      "mean_deg": -66.68373740859026,
+      "min_deg": -86.77264932918793,
+      "max_deg": -13.886543832691196,
+      "ref_mean_deg": -67.93955527941922,
+      "tracking_rmse_deg": 3.6959455078233954,
+      "max_torque_Nm": 0.6800081729888916,
+      "min_limit_margin_deg": 14.927351110306187
+    },
+    "pitch": {
+      "mean_deg": -7.634633192535508,
+      "min_deg": -21.93850101973655,
+      "max_deg": 11.492895500323764,
+      "ref_mean_deg": -7.7276945251077835,
+      "tracking_rmse_deg": 7.357869714775653,
+      "max_torque_Nm": 1.311029076576233,
+      "min_limit_margin_deg": 61.31150044313211
+    },
+    "yaw": {
+      "mean_deg": -35.09773063171761,
+      "min_deg": -58.34398815443667,
+      "max_deg": -4.312748354693893,
+      "ref_mean_deg": -36.213897843343204,
+      "tracking_rmse_deg": 8.686821670934426,
+      "max_torque_Nm": 0.7055224776268005,
+      "min_limit_margin_deg": 24.906011600884696
+    },
+    "combined_axis_bend_mean_deg": 36.73254246465475
+  }
+}

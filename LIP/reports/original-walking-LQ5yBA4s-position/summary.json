@@ -1,0 +1,84 @@
+{
+  "left": {
+    "post7_mean_error_cm": 27.73484752728389,
+    "post7_max_error_cm": 33.50302875041962,
+    "joints": {
+      "shoulder_pitch": {
+        "tracking_rms_rad": 0.04979245151730843,
+        "max_applied_nm": 5.3468122482299805,
+        "fraction_at_limit": 0.0
+      },
+      "shoulder_roll": {
+        "tracking_rms_rad": 0.04650539520311639,
+        "max_applied_nm": 4.360083103179932,
+        "fraction_at_limit": 0.0
+      },
+      "shoulder_yaw": {
+        "tracking_rms_rad": 0.043310029323217404,
+        "max_applied_nm": 1.35548734664917,
+        "fraction_at_limit": 0.0
+      },
+      "elbow": {
+        "tracking_rms_rad": 0.0445166495719976,
+        "max_applied_nm": 2.8106789588928223,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_roll": {
+        "tracking_rms_rad": 0.03407622547913469,
+        "max_applied_nm": 0.3723238706588745,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_pitch": {
+        "tracking_rms_rad": 0.030892784731121087,
+        "max_applied_nm": 0.38417768478393555,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_yaw": {
+        "tracking_rms_rad": 0.027355926159099618,
+        "max_applied_nm": 0.1503438651561737,
+        "fraction_at_limit": 0.0
+      }
+    }
+  },
+  "right": {
+    "post7_mean_error_cm": 27.026297615124626,
+    "post7_max_error_cm": 31.359416246414185,
+    "joints": {
+      "shoulder_pitch": {
+        "tracking_rms_rad": 0.0497808124377432,
+        "max_applied_nm": 6.145760536193848,
+        "fraction_at_limit": 0.0
+      },
+      "shoulder_roll": {
+        "tracking_rms_rad": 0.0460003000088701,
+        "max_applied_nm": 3.9178380966186523,
+        "fraction_at_limit": 0.0
+      },
+      "shoulder_yaw": {
+        "tracking_rms_rad": 0.03981676720571646,
+        "max_applied_nm": 1.2188093662261963,
+        "fraction_at_limit": 0.0
+      },
+      "elbow": {
+        "tracking_rms_rad": 0.04466598030337025,
+        "max_applied_nm": 3.016085147857666,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_roll": {
+        "tracking_rms_rad": 0.03347205827177007,
+        "max_applied_nm": 0.39937853813171387,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_pitch": {
+        "tracking_rms_rad": 0.02927772882655173,
+        "max_applied_nm": 0.4821532964706421,
+        "fraction_at_limit": 0.0
+      },
+      "wrist_yaw": {
+        "tracking_rms_rad": 0.029724643447303842,
+        "max_applied_nm": 0.16111111640930176,
+        "fraction_at_limit": 0.0
+      }
+    }
+  }
+}

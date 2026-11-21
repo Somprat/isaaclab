@@ -1,0 +1,28 @@
+{
+  "source": "/home/choon/isaaclab/LIP/previews/g1-world-pose-QjzheWXO-499-immediate-state",
+  "mode": "matched-ik",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "ik_iterations_per_frame": 1,
+  "max_model_position_disagreement_m": 1.3714231070618169e-06,
+  "note": "Matched-ik mode re-solves online from the previous displayed arms, recorded measured body pose, and recorded world hand targets with DLS damping 0.05, per-joint 0.05 rad correction cap, and 0.9 soft joint ranges. No physics or policy runs during replay. All-commands mode applies all recorded joint position targets; commands mode applies only arm targets.",
+  "post7": {
+    "left": {
+      "mean_error_m": 0.00043467787527528873,
+      "max_error_m": 0.0022711208788159876
+    },
+    "right": {
+      "mean_error_m": 0.0006665264478289269,
+      "max_error_m": 0.002347986178699742
+    }
+  },
+  "target_adjustment": {
+    "world_x_delta_m": -0.05,
+    "ramp_start_s": 1.0,
+    "ramp_end_s": 7.0,
+    "other_target_components": "unchanged",
+    "physics_stepping": false,
+    "policy_inference": false
+  },
+  "description": "Recorded measured body motion and online capped pose IK. World X targets move 5 cm closer via a linear 1-7 second ramp. World identity hand orientation, original Y and absolute Z retained. Exact arm placement, no physics stepping or policy inference."
+}

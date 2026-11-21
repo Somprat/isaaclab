@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "frame": "world_z_up",
+  "state_kind": "reset_before_physics",
+  "task": "Isaac-Velocity-Flat-G1",
+  "preset": "lipm",
+  "asset": "/home/choon/isaaclab/IsaacLab/checkpoints/g1-29dof/mpc-matched-assets/g1_29dof/g1_29dof.usda",
+  "root_pos": [
+    0.0,
+    0.0,
+    0.7842022776603699
+  ],
+  "root_quat_xyzw": [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "com_pos": [
+    0.023713823407888412,
+    7.217086385935545e-05,
+    0.7144140005111694
+  ],
+  "com_vel": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "foot_names": [
+    "left",
+    "right"
+  ],
+  "foot_pos": [
+    [
+      -0.026001635938882828,
+      0.11850646138191223,
+      2.60770320892334e-08
+    ],
+    [
+      -0.026001635938882828,
+      -0.11850646138191223,
+      2.60770320892334e-08
+    ]
+  ],
+  "foot_offsets": [
+    [
+      0.0,
+      0.0,
+      -0.03500000014901161
+    ],
+    [
+      0.0,
+      0.0,
+      -0.03500000014901161
+    ]
+  ],
+  "foot_contact_points": [
+    [
+      [
+        -0.07600163668394089,
+        0.1435064673423767,
+        2.8870999813079834e-08
+      ],
+      [
+        -0.07600163668394089,
+        0.09350646287202835,
+        2.8870999813079834e-08
+      ],
+      [
+        0.09399835765361786,
+        0.14850646257400513,
+        2.514570951461792e-08
+      ],
+      [
+        0.09399835765361786,
+        0.08850646018981934,
+        2.514570951461792e-08
+      ]
+    ],
+    [
+      [
+        -0.07600163668394089,
+        -0.09350646287202835,
+        2.8870999813079834e-08
+      ],
+      [
+        -0.07600163668394089,
+        -0.1435064673423767,
+        2.8870999813079834e-08
+      ],
+      [
+        0.09399835765361786,
+        -0.08850646018981934,
+        2.514570951461792e-08
+      ],
+      [
+        0.09399835765361786,
+        -0.14850646257400513,
+        2.514570951461792e-08
+      ]
+    ]
+  ],
+  "minimum_foot_collision_height": [
+    2.514570951461792e-08,
+    2.514570951461792e-08
+  ],
+  "joint_names": [
+    "left_hip_pitch_joint",
+    "left_hip_roll_joint",
+    "left_hip_yaw_joint",
+    "left_knee_joint",
+    "left_ankle_pitch_joint",
+    "left_ankle_roll_joint",
+    "right_hip_pitch_joint",
+    "right_hip_roll_joint",
+    "right_hip_yaw_joint",
+    "right_knee_joint",
+    "right_ankle_pitch_joint",
+    "right_ankle_roll_joint",
+    "waist_yaw_joint",
+    "waist_roll_joint",
+    "waist_pitch_joint",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
+    "right_wrist_yaw_joint"
+  ],
+  "joint_pos": [
+    -0.10000000149011612,
+    0.0,
+    0.0,
+    0.30000001192092896,
+    -0.20000000298023224,
+    0.0,
+    -0.10000000149011612,
+    0.0,
+    0.0,
+    0.30000001192092896,
+    -0.20000000298023224,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "joint_vel": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "notes": "World axes relative to environment origin. State is captured before physics; contact-check samples are subsequent nominal-PD measurements, not a replacement for the reset state.",
+  "contact_check": {
+    "samples": [
+      {
+        "time": 0.02,
+        "foot_force_world": [
+          [
+            12.57658576965332,
+            -0.6148258447647095,
+            157.1683349609375
+          ],
+          [
+            12.573472023010254,
+            0.6093589663505554,
+            157.16812133789062
+          ]
+        ],
+        "loaded_over_10N": [
+          true,
+          true
+        ]
+      },
+      {
+        "time": 0.04,
+        "foot_force_world": [
+          [
+            7.938938617706299,
+            -0.690808892250061,
+            175.770263671875
+          ],
+          [
+            7.930251121520996,
+            0.6884866952896118,
+            175.72447204589844
+          ]
+        ],
+        "loaded_over_10N": [
+          true,
+          true
+        ]
+      },
+      {
+        "time": 0.06,
+        "foot_force_world": [
+          [
+            32.26791000366211,
+            -1.2990899085998535,
+            340.19720458984375
+          ],
+          [
+            32.25130844116211,
+            1.3020744323730469,
+            340.0421447753906
+          ]
+        ],
+        "loaded_over_10N": [
+          true,
+          true
+        ]
+      },
+      {
+        "time": 0.08,
+        "foot_force_world": [
+          [
+            5.241720676422119,
+            -0.7031139135360718,
+            180.62623596191406
+          ],
+          [
+            5.221607208251953,
+            0.711871325969696,
+            180.442138671875
+          ]
+        ],
+        "loaded_over_10N": [
+          true,
+          true
+        ]
+      },
+      {
+        "time": 0.1,
+        "foot_force_world": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "loaded_over_10N": [
+          false,
+          false
+        ]
+      }
+    ],
+    "both_feet_loaded": true,
+    "total_mass_kg": 35.115142822265625
+  }
+}

@@ -1,0 +1,1 @@
+Added opt-in direct online-IK arm placement for G1 fine-tuning and saved-config inference. Arm states interpolate across eager Newton physics substeps with matching velocities, zero arm drive gains, and full-body physics.

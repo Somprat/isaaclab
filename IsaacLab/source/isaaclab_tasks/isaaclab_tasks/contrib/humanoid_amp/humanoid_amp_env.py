@@ -130,6 +130,10 @@ class HumanoidAmpEnv(DirectRLEnv):
         # sample random motion times (or zeros if start is True)
         num_samples = env_ids.shape[0]
         times = np.zeros(num_samples) if start else self._motion_loader.sample_times(num_samples)
+        # Anchor the sampled root to this environment and its configured reset heading.
+        default_quat = self.robot.data.default_root_pose.torch[env_ids, 3:7]
+        w, x, y, z = default_quat.unbind(-1)
+        reset_heading = torch.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
         # sample random motions
         (
             dof_positions,
@@ -138,7 +142,14 @@ class HumanoidAmpEnv(DirectRLEnv):
             body_rotations,
             body_linear_velocities,
             body_angular_velocities,
-        ) = self._motion_loader.sample(num_samples=num_samples, times=times)
+        ) = self._motion_loader.sample(
+            num_samples=num_samples,
+            times=times,
+            env_origins=self.scene.env_origins[env_ids],
+            target_headings=reset_heading,
+            anchor_times=times,
+            root_body_name="torso",
+        )
 
         # get root transforms (the humanoid torso)
         motion_torso_index = self._motion_loader.get_body_index(["torso"])[0]
@@ -149,7 +160,7 @@ class HumanoidAmpEnv(DirectRLEnv):
             ],
             dim=-1,
         ).clone()
-        root_state[:, 0:3] = body_positions[:, motion_torso_index] + self.scene.env_origins[env_ids]
+        root_state[:, 0:3] = body_positions[:, motion_torso_index]
         root_state[:, 2] += 0.15  # lift the humanoid slightly to avoid collisions with the ground
         root_state[:, 3:7] = body_rotations[:, motion_torso_index]
         root_state[:, 7:10] = body_linear_velocities[:, motion_torso_index]
@@ -171,8 +182,7 @@ class HumanoidAmpEnv(DirectRLEnv):
         if current_times is None:
             current_times = self._motion_loader.sample_times(num_samples)
         times = (
-            np.expand_dims(current_times, axis=-1)
-            - self._motion_loader.dt * np.arange(0, self.cfg.num_amp_observations)
+            np.expand_dims(current_times, axis=-1) - self.step_dt * np.arange(0, self.cfg.num_amp_observations)
         ).flatten()
         # get motions
         (

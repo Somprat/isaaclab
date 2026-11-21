@@ -1,0 +1,47 @@
+{
+  "source_recording": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "hold_time_s": 7.0,
+  "hold_frame": "torso_translation",
+  "video_written": true,
+  "held_world_positions": {
+    "left": [
+      1.4814615159240396,
+      0.1980892257334328,
+      1.0382955512949255
+    ],
+    "right": [
+      1.4842559262258521,
+      -0.14668957352271647,
+      1.036893974270592
+    ]
+  },
+  "held_world_quaternions_wxyz": {
+    "left": [
+      0.9973545228391847,
+      -0.06488114536603033,
+      0.004175756727083549,
+      0.03251085670926929
+    ],
+    "right": [
+      0.9973515413444628,
+      -0.06490980676551977,
+      0.004150421747569758,
+      0.03254833271928153
+    ]
+  },
+  "description": "Recorded body motion; all seven joints per arm remain in pose DLS IK. At seven seconds capture XY and world orientation, retaining recorded world Z targets. In torso_translation mode, XY follows torso translation in world axes; in world mode XY stays at the captured room location. No dynamics, policy inference, persistent reference accumulation, joint locking, or posture correction. Rigid G1 rubber hands; no articulated fingers.",
+  "post_hold_errors": {
+    "left": {
+      "horizontal_rms_m": 0.0022735748363717392,
+      "horizontal_max_m": 0.012830512661126794,
+      "orientation_max_deg": 4.8559733123787865
+    },
+    "right": {
+      "horizontal_rms_m": 0.001801622494356561,
+      "horizontal_max_m": 0.004844426429229292,
+      "orientation_max_deg": 1.370732741836685
+    }
+  }
+}

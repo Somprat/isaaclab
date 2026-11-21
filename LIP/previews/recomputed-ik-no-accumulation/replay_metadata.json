@@ -1,0 +1,25 @@
+{
+  "source_checkpoint": "/home/choon/isaaclab/IsaacLab/logs/rsl_rl/g1_lipm_online_hands_finetune/run_5ogXH686/training/model_499.pt",
+  "source_recording": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "frames": 1000,
+  "fps": 50,
+  "duration_s": 20.0,
+  "arm_joints": [
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
+    "right_wrist_yaw_joint"
+  ],
+  "max_actual_hand_world_z_model_disagreement_m": 5.830675837703581e-07,
+  "description": "Closed-loop kinematic diagnostic: recorded pelvis, legs, waist and world targets; arm DLS IK recomputed from previous replay arm state each frame. No persistent reference accumulation, physics integration, or policy execution. Damping 0.05, per-joint increment cap 0.05 rad, soft-limit factor 0.9, one solve per recorded control frame."
+}

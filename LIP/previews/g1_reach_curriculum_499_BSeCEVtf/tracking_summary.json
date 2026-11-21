@@ -1,0 +1,47 @@
+{
+  "sample_count": 1000,
+  "sampling_note": "Pre-action states compared with the current reference time, excluding terminal auto-reset states.",
+  "hand_frame": "torso_link",
+  "metrics": {
+    "com_position_error_m": {
+      "mean": 0.011433783409069292,
+      "rmse": 0.012323371260018466,
+      "max": 0.019905561581254005
+    },
+    "com_velocity_error_m_s": {
+      "mean": 0.08384512135526165,
+      "rmse": 0.09469334818947023,
+      "max": 0.31274518370628357
+    },
+    "left_foot_position_error_m": {
+      "mean": 0.012103914330160477,
+      "rmse": 0.013850515603758292,
+      "max": 0.028110142797231674
+    },
+    "right_foot_position_error_m": {
+      "mean": 0.013267088495776989,
+      "rmse": 0.014606270148026783,
+      "max": 0.03700367733836174
+    },
+    "left_hand_position_error_m": {
+      "mean": 0.13839185591012979,
+      "rmse": 0.14394210330089527,
+      "max": 0.18941061198711395
+    },
+    "right_hand_position_error_m": {
+      "mean": 0.17572793217393376,
+      "rmse": 0.1820005704695439,
+      "max": 0.21271328628063202
+    }
+  },
+  "motion_metrics": {
+    "com_velocity_error_m_s": {
+      "mean": 0.08384512135526165,
+      "rms": 0.09469334818947023,
+      "min": 0.0,
+      "max": 0.31274518370628357,
+      "p95_abs": 0.16342137083411215
+    }
+  },
+  "motion_note": "Torso Euler angles are world-frame XYZ radians; angular velocity is torso-frame. Hand world velocity = torso-origin translation + torso rotation cross hand offset + arm motion relative to torso. Relative velocity includes rotating-frame correction. Component speed magnitudes are not additive or causal percentages."
+}

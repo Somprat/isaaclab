@@ -1,0 +1,36 @@
+{
+  "left": {
+    "goal_m": [
+      0.40263396365512466,
+      0.17798645950570047,
+      0.2
+    ],
+    "error_m": 2.3790344630995607e-13,
+    "joint_angles_deg": {
+      "left_shoulder_pitch_joint": -58.6452970046207,
+      "left_shoulder_roll_joint": 12.495094593745733,
+      "left_shoulder_yaw_joint": 13.139862293448383,
+      "left_elbow_joint": 46.58160379550561,
+      "left_wrist_roll_joint": 0.0,
+      "left_wrist_pitch_joint": 0.0,
+      "left_wrist_yaw_joint": 0.0
+    }
+  },
+  "right": {
+    "goal_m": [
+      0.40458862753875713,
+      -0.16640127256106163,
+      0.2
+    ],
+    "error_m": 1.1551255690835465e-14,
+    "joint_angles_deg": {
+      "right_shoulder_pitch_joint": -59.484769265988064,
+      "right_shoulder_roll_joint": -11.331349949645482,
+      "right_shoulder_yaw_joint": -11.991328698267184,
+      "right_elbow_joint": 47.43789305586038,
+      "right_wrist_roll_joint": 0.0,
+      "right_wrist_pitch_joint": 0.0,
+      "right_wrist_yaw_joint": 0.0
+    }
+  }
+}

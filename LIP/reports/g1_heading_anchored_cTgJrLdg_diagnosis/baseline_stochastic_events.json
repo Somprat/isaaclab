@@ -1,0 +1,272 @@
+[
+  {
+    "env": 2,
+    "case": "deterministic",
+    "time_s": 9.5,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 4,
+    "case": "deterministic",
+    "time_s": 9.66,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 29,
+    "case": "stochastic",
+    "time_s": 10.3,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 12,
+    "case": "deterministic",
+    "time_s": 12.22,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 21,
+    "case": "stochastic",
+    "time_s": 12.6,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 25,
+    "case": "stochastic",
+    "time_s": 14.540000000000001,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 22,
+    "case": "stochastic",
+    "time_s": 16.16,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 26,
+    "case": "stochastic",
+    "time_s": 17.1,
+    "terms": [
+      "fallen",
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 23,
+    "case": "stochastic",
+    "time_s": 17.3,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 17,
+    "case": "stochastic",
+    "time_s": 17.7,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 14,
+    "case": "deterministic",
+    "time_s": 18.3,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 9,
+    "case": "deterministic",
+    "time_s": 18.44,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 20,
+    "case": "stochastic",
+    "time_s": 18.64,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 15,
+    "case": "deterministic",
+    "time_s": 18.66,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 7,
+    "case": "deterministic",
+    "time_s": 19.080000000000002,
+    "terms": [
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 13,
+    "case": "deterministic",
+    "time_s": 19.36,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 8,
+    "case": "deterministic",
+    "time_s": 19.38,
+    "terms": [
+      "fallen",
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 24,
+    "case": "stochastic",
+    "time_s": 19.48,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 0,
+    "case": "deterministic",
+    "time_s": 19.52,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 30,
+    "case": "stochastic",
+    "time_s": 19.6,
+    "terms": [
+      "fallen",
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 6,
+    "case": "deterministic",
+    "time_s": 19.7,
+    "terms": [
+      "fallen",
+      "bad_orientation"
+    ]
+  },
+  {
+    "env": 1,
+    "case": "deterministic",
+    "time_s": 19.84,
+    "terms": [
+      "fallen"
+    ]
+  },
+  {
+    "env": 3,
+    "case": "deterministic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 5,
+    "case": "deterministic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 10,
+    "case": "deterministic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 11,
+    "case": "deterministic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 16,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 18,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 19,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 27,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 28,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  },
+  {
+    "env": 31,
+    "case": "stochastic",
+    "time_s": 20.0,
+    "terms": [
+      "time_out",
+      "reference_finished"
+    ]
+  }
+]
