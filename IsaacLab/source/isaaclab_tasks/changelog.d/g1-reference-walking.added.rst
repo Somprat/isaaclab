@@ -1,0 +1,1 @@
+Add an optional MPC reference preset to the existing flat G1 walking task, retaining locomotion rewards and PPO settings while adding synchronized reference observations and rewards. Accept a single NPZ reference or a directory.

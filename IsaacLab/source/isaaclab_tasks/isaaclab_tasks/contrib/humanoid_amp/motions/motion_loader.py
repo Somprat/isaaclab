@@ -20,31 +20,38 @@ class MotionLoader:
         """Load a motion file and initialize the internal variables.
 
         Args:
-            motion_file: Motion file path to load.
+            motion_file: Motion file path to load. Accepts AMP field names (such as
+                ``dof_positions``) and MPC aliases (such as ``joint_pos``). Body rotations
+                must use wxyz quaternions. Joint and body order is preserved; use
+                :meth:`get_dof_index` and :meth:`get_body_index` to map to a robot.
             device: The device to which to load the data.
 
         Raises:
             AssertionError: If the specified motion file doesn't exist.
         """
         assert os.path.isfile(motion_file), f"Invalid file path: {motion_file}"
-        data = np.load(motion_file)
-
         self.device = device
-        self._dof_names = data["dof_names"].tolist()
-        self._body_names = data["body_names"].tolist()
+        with np.load(motion_file, allow_pickle=False) as data:
+            # Keep the existing AMP names authoritative when both formats are present.
+            dof_names_key = "dof_names" if "dof_names" in data else "joint_names"
+            self._dof_names = data[dof_names_key].astype(str).tolist()
+            self._body_names = data["body_names"].astype(str).tolist()
 
-        self.dof_positions = torch.tensor(data["dof_positions"], dtype=torch.float32, device=self.device)
-        self.dof_velocities = torch.tensor(data["dof_velocities"], dtype=torch.float32, device=self.device)
-        self.body_positions = torch.tensor(data["body_positions"], dtype=torch.float32, device=self.device)
-        self.body_rotations = torch.tensor(data["body_rotations"], dtype=torch.float32, device=self.device)
-        self.body_linear_velocities = torch.tensor(
-            data["body_linear_velocities"], dtype=torch.float32, device=self.device
-        )
-        self.body_angular_velocities = torch.tensor(
-            data["body_angular_velocities"], dtype=torch.float32, device=self.device
-        )
+            # MPC exports use joint_* and world-frame body_*_w field names.
+            motion_fields = {
+                "dof_positions": "joint_pos",
+                "dof_velocities": "joint_vel",
+                "body_positions": "body_pos_w",
+                "body_rotations": "body_quat_w",
+                "body_linear_velocities": "body_lin_vel_w",
+                "body_angular_velocities": "body_ang_vel_w",
+            }
+            for name, alias in motion_fields.items():
+                key = name if name in data else alias
+                setattr(self, name, torch.tensor(data[key], dtype=torch.float32, device=self.device))
 
-        self.dt = 1.0 / data["fps"]
+            # Accept both the scalar AMP fps and the one-element MPC fps array.
+            self.dt = 1.0 / float(data["fps"].item())
         self.num_frames = self.dof_positions.shape[0]
         self.duration = self.dt * (self.num_frames - 1)
         print(f"Motion loaded ({motion_file}): duration: {self.duration} sec, frames: {self.num_frames}")
@@ -130,35 +137,16 @@ class MotionLoader:
         if q0.ndim >= 3:
             blend = blend.unsqueeze(-1)
 
-        qw, qx, qy, qz = 0, 1, 2, 3  # wxyz
-        cos_half_theta = (
-            q0[..., qw] * q1[..., qw]
-            + q0[..., qx] * q1[..., qx]
-            + q0[..., qy] * q1[..., qy]
-            + q0[..., qz] * q1[..., qz]
-        )
-
-        neg_mask = cos_half_theta < 0
-        q1 = q1.clone()
-        q1[neg_mask] = -q1[neg_mask]
-        cos_half_theta = torch.abs(cos_half_theta)
-        cos_half_theta = torch.unsqueeze(cos_half_theta, dim=-1)
-
-        half_theta = torch.acos(cos_half_theta)
-        sin_half_theta = torch.sqrt(1.0 - cos_half_theta * cos_half_theta)
-
-        ratio_a = torch.sin((1 - blend) * half_theta) / sin_half_theta
-        ratio_b = torch.sin(blend * half_theta) / sin_half_theta
-
-        new_q_x = ratio_a * q0[..., qx : qx + 1] + ratio_b * q1[..., qx : qx + 1]
-        new_q_y = ratio_a * q0[..., qy : qy + 1] + ratio_b * q1[..., qy : qy + 1]
-        new_q_z = ratio_a * q0[..., qz : qz + 1] + ratio_b * q1[..., qz : qz + 1]
-        new_q_w = ratio_a * q0[..., qw : qw + 1] + ratio_b * q1[..., qw : qw + 1]
-
-        new_q = torch.cat([new_q_w, new_q_x, new_q_y, new_q_z], dim=len(new_q_w.shape) - 1)
-        new_q = torch.where(torch.abs(sin_half_theta) < 0.001, 0.5 * q0 + 0.5 * q1, new_q)
-        new_q = torch.where(torch.abs(cos_half_theta) >= 1, q0, new_q)
-        return new_q
+        q0 = torch.nn.functional.normalize(q0, dim=-1)
+        q1 = torch.nn.functional.normalize(q1, dim=-1)
+        dot = (q0 * q1).sum(dim=-1, keepdim=True)
+        q1 = torch.where(dot < 0.0, -q1, q1)
+        dot = dot.abs().clamp(0.0, 1.0)
+        theta = torch.acos(dot)
+        sin_theta = torch.sin(theta).clamp_min(1e-8)
+        spherical = (torch.sin((1.0 - blend) * theta) * q0 + torch.sin(blend * theta) * q1) / sin_theta
+        linear = (1.0 - blend) * q0 + blend * q1
+        return torch.nn.functional.normalize(torch.where(dot > 0.9995, linear, spherical), dim=-1)
 
     def _compute_frame_blend(self, times: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute the indexes of the first and second values, as well as the blending time
@@ -171,10 +159,13 @@ class MotionLoader:
         Returns:
             First value indexes, Second value indexes, and blending time between 0 (first value) and 1 (second value).
         """
-        phase = np.clip(times / self.duration, 0.0, 1.0)
-        index_0 = (phase * (self.num_frames - 1)).round(decimals=0).astype(int)
+        times = np.asarray(times, dtype=np.float64)
+        if times.ndim != 1 or not np.isfinite(times).all():
+            raise ValueError("Motion times must be a finite one-dimensional array.")
+        frame = np.clip(times, 0.0, self.duration) / self.dt
+        index_0 = np.floor(frame).astype(int).clip(0, self.num_frames - 1)
         index_1 = np.minimum(index_0 + 1, self.num_frames - 1)
-        blend = ((times - index_0 * self.dt) / self.dt).round(decimals=5)
+        blend = np.clip(frame - index_0, 0.0, 1.0)
         return index_0, index_1, blend
 
     def sample_times(self, num_samples: int, duration: float | None = None) -> np.ndarray:
@@ -198,7 +189,15 @@ class MotionLoader:
         return duration * np.random.uniform(low=0.0, high=1.0, size=num_samples)
 
     def sample(
-        self, num_samples: int, times: np.ndarray | None = None, duration: float | None = None
+        self,
+        num_samples: int,
+        times: np.ndarray | None = None,
+        duration: float | None = None,
+        *,
+        env_origins: torch.Tensor | None = None,
+        target_headings: torch.Tensor | None = None,
+        anchor_times: np.ndarray | None = None,
+        root_body_name: str | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Sample motion data.
 
@@ -209,6 +208,17 @@ class MotionLoader:
             duration: Maximum motion duration to sample.
                 If not defined, samples will be within the range of the motion duration.
                 If ``times`` is defined, this parameter is ignored.
+
+            env_origins: Optional world offsets of shape (N, 3). The root XY at
+                ``anchor_times`` is placed at each environment's XY origin.
+                Reference height is preserved and shifted by the origin's Z.
+            target_headings: Optional desired root yaw at the anchor, shape (N,),
+                in radians. Rotates every body pose and world-frame velocity.
+                If omitted, the original heading is preserved.
+            anchor_times: Fixed reset/reference times per environment, shape (N,).
+                Defaults to clip start. Keep these fixed as playback advances.
+            root_body_name: Root body used for alignment; defaults to the first
+                body in the file (pelvis in MPC G1 exports).
 
         Returns:
             A tuple containing sampled motion data:
@@ -223,7 +233,7 @@ class MotionLoader:
         index_0, index_1, blend = self._compute_frame_blend(times)
         blend = torch.tensor(blend, dtype=torch.float32, device=self.device)
 
-        return (
+        sampled = (
             self._interpolate(self.dof_positions, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.dof_velocities, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.body_positions, blend=blend, start=index_0, end=index_1),
@@ -231,6 +241,92 @@ class MotionLoader:
             self._interpolate(self.body_linear_velocities, blend=blend, start=index_0, end=index_1),
             self._interpolate(self.body_angular_velocities, blend=blend, start=index_0, end=index_1),
         )
+        if env_origins is not None or target_headings is not None:
+            sampled = self._align_sample(sampled, env_origins, target_headings, anchor_times, root_body_name)
+        return sampled
+
+    def sample_steps(
+        self,
+        steps: np.ndarray,
+        step_dt: float,
+        start_times: np.ndarray | float = 0.0,
+        *,
+        env_origins: torch.Tensor | None = None,
+        target_headings: torch.Tensor | None = None,
+        anchor_times: np.ndarray | None = None,
+        root_body_name: str | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Sample at policy steps, without changing playback speed or source frame rate.
+
+        ``step_dt`` is the policy/control timestep in seconds (for example,
+        ``env.step_dt``), not the physics substep. For resets into the middle of
+        a clip, pass the same saved per-environment ``start_times`` as
+        ``anchor_times`` to keep the alignment fixed throughout the episode.
+        Alignment arguments have the same meaning as in :meth:`sample`.
+        """
+        if not np.isfinite(step_dt) or step_dt <= 0.0:
+            raise ValueError("Policy timestep must be finite and positive.")
+        steps = np.asarray(steps, dtype=np.float64)
+        if steps.ndim != 1 or not np.isfinite(steps).all() or np.any(steps < 0):
+            raise ValueError("Policy steps must be a finite nonnegative one-dimensional array.")
+        times = np.asarray(start_times, dtype=np.float64) + steps * step_dt
+        return self.sample(
+            len(steps),
+            times=times,
+            env_origins=env_origins,
+            target_headings=target_headings,
+            anchor_times=anchor_times,
+            root_body_name=root_body_name,
+        )
+
+    def _align_sample(
+        self,
+        sampled: tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+        env_origins: torch.Tensor | None,
+        target_headings: torch.Tensor | None,
+        anchor_times: np.ndarray | None,
+        root_body_name: str | None,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Apply one fixed horizontal root transform per sampled environment."""
+        dof_pos, dof_vel, positions, rotations, lin_vel, ang_vel = sampled
+        count = positions.shape[0]
+        origins = (
+            torch.zeros((count, 3), device=self.device)
+            if env_origins is None
+            else torch.as_tensor(env_origins, device=self.device, dtype=positions.dtype)
+        )
+        if origins.shape != (count, 3) or not torch.isfinite(origins).all():
+            raise ValueError("env_origins must have shape (samples, 3) and contain finite values.")
+        anchor_times = np.zeros(count) if anchor_times is None else np.asarray(anchor_times, dtype=np.float64)
+        if anchor_times.shape != (count,):
+            raise ValueError("anchor_times must have shape (samples,).")
+        start, end, blend = self._compute_frame_blend(anchor_times)
+        blend = torch.tensor(blend, dtype=torch.float32, device=self.device)
+        root = self.get_body_index([root_body_name or self.body_names[0]])[0]
+        anchor_pos = self._interpolate(self.body_positions[:, root], start=start, end=end, blend=blend).clone()
+        # Preserve absolute reference height above the ground; only rebase horizontal displacement.
+        anchor_pos[:, 2] = 0.0
+        if target_headings is None:
+            delta = torch.zeros(count, device=self.device)
+        else:
+            headings = torch.as_tensor(target_headings, device=self.device, dtype=positions.dtype)
+            if headings.shape != (count,) or not torch.isfinite(headings).all():
+                raise ValueError("target_headings must have shape (samples,) and be finite radians.")
+            q = self._slerp(self.body_rotations[:, root], start=start, end=end, blend=blend)
+            w, x, y, z = q.unbind(-1)
+            delta = headings - torch.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+        c, s = torch.cos(delta)[:, None], torch.sin(delta)[:, None]
+
+        def rotate(v: torch.Tensor) -> torch.Tensor:
+            return torch.stack((c * v[..., 0] - s * v[..., 1], s * v[..., 0] + c * v[..., 1], v[..., 2]), dim=-1)
+
+        positions = rotate(positions - anchor_pos[:, None]) + origins[:, None]
+        c_half, s_half = torch.cos(delta / 2.0)[:, None], torch.sin(delta / 2.0)[:, None]
+        w, x, y, z = rotations.unbind(-1)
+        rotations = torch.stack(
+            (c_half * w - s_half * z, c_half * x - s_half * y, c_half * y + s_half * x, c_half * z + s_half * w), dim=-1
+        )
+        return dof_pos, dof_vel, positions, rotations, rotate(lin_vel), rotate(ang_vel)
 
     def get_dof_index(self, dof_names: list[str]) -> list[int]:
         """Get skeleton DOFs indexes by DOFs names.

@@ -1,0 +1,19 @@
+{
+  "checkpoint": "/home/choon/isaaclab/IsaacLab/logs/rsl_rl/g1_onnx_mpc_finetune/2026-10-22_13-33-16/model_299.pt",
+  "duration_s": 20.0,
+  "steps": 1000,
+  "resets": 1,
+  "termination_events": [
+    {
+      "time_s": 20.0,
+      "terms": [
+        "time_out",
+        "reference_finished"
+      ]
+    }
+  ],
+  "training": false,
+  "motion": "/home/choon/isaaclab/wb_humanoid_mpc/generated_motions/step_slow_20s/reference_neutral.npz",
+  "random_start": false,
+  "num_envs": 1
+}

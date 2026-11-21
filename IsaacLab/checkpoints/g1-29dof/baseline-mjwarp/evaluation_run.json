@@ -1,0 +1,26 @@
+{
+  "policy_sha256": "610c27e463a8f666aa50a06346678c00b4df3859f10b54bcc1f817c28251406f",
+  "physics_backend": "newton_mjwarp",
+  "duration_s": 20.0,
+  "completed_duration_s": 20.0,
+  "segment_duration_s": 6.666666666666667,
+  "settle_time_s": 2.0,
+  "seed": 42,
+  "control_dt_s": 0.02,
+  "targets_m_s": [
+    0.2,
+    0.5,
+    1.0
+  ],
+  "policy_inputs_m_s": [
+    0.27,
+    0.53,
+    1.05
+  ],
+  "contact_on_n": 10,
+  "contact_off_n": 5,
+  "contact_debounce_s": 0.06,
+  "fall": null,
+  "asset": "/home/choon/isaaclab/IsaacLab/checkpoints/g1-29dof/assets/g1_29dof_rev_1_0.usd",
+  "training": false
+}

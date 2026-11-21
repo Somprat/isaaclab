@@ -1,0 +1,1 @@
+Use an isolated asset converted from the MPC URDF for G1 reference training; match composite inertias, joint frames/limits, zero rotor armature and friction, and reject stale asset/source fingerprints. Preserve the original pretrained robot asset.

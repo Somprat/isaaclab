@@ -1,0 +1,23 @@
+{
+  "policy_sha256": "610c27e463a8f666aa50a06346678c00b4df3859f10b54bcc1f817c28251406f",
+  "duration_s": 45,
+  "segment_duration_s": 15,
+  "settle_time_s": 2,
+  "seed": 42,
+  "physics_backend": "isaacsim_physx",
+  "control_dt_s": 0.02,
+  "targets_m_s": [
+    0.2,
+    0.5,
+    1.0
+  ],
+  "policy_inputs_m_s": [
+    0.27,
+    0.53,
+    1.05
+  ],
+  "contact_on_n": 10,
+  "contact_off_n": 5,
+  "contact_debounce_s": 0.06,
+  "command": "HEADLESS=1 uv run --extra isaacsim --extra video --with onnxruntime --with pyyaml python scripts/reinforcement_learning/play_g1_29dof.py --duration 45 --evaluate-gait --output checkpoints/g1-29dof/gait-evaluation"
+}
