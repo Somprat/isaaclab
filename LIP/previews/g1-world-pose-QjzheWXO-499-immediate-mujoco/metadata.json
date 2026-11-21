@@ -1,0 +1,19 @@
+{
+  "source": "/home/choon/isaaclab/LIP/previews/g1-world-pose-QjzheWXO-499-immediate-state",
+  "mode": "commands",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "ik_iterations_per_frame": null,
+  "max_model_position_disagreement_m": 1.3714231070618169e-06,
+  "note": "Recorded joint commands already contain training-time clamps; IK mode recomputes without angle or step clamps. DLS damping 0.05 retained. Recorded Cartesian positions and orientations used exactly; no new target capture.",
+  "post7": {
+    "left": {
+      "mean_error_m": 0.006816942875608293,
+      "max_error_m": 0.02054627632289609
+    },
+    "right": {
+      "mean_error_m": 0.026522340958077487,
+      "max_error_m": 0.03818454288766738
+    }
+  }
+}

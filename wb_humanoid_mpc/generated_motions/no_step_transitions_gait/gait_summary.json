@@ -1,0 +1,25 @@
+[
+  {
+    "segment": 1,
+    "target_vx_m_s": 0.125,
+    "settle_time_s": 2.0,
+    "measurement_duration_s": 18.033333333333484,
+    "mean_actual_vx_m_s": 0.12216541672636484,
+    "speed_mae_m_s": 0.028452990920440204,
+    "speed_std_m_s": 0.03240956439172653,
+    "left_touchdowns": 12,
+    "right_touchdowns": 11,
+    "complete_strides": 21,
+    "mean_stride_length_m": 0.19943755794139134,
+    "stride_length_std_m": 0.0007996221114575975,
+    "mean_stride_period_s": 1.5984126984127112,
+    "stride_period_cv": 0.00781927296325703,
+    "cadence_steps_min": 75.07447864945323,
+    "commanded_step_length_m": 0.10000000894069672,
+    "commanded_step_duration_s": 0.8000000715255737,
+    "measured_step_length_m": 0.09968369685106747,
+    "measured_step_duration_s": 0.8000000000000068,
+    "root_lateral_displacement_m": 0.03558986634016037,
+    "heading_change_deg": 3.718622998583233
+  }
+]

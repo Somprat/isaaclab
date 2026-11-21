@@ -1,0 +1,62 @@
+{
+  "left": {
+    "target_m": [
+      0.40263396365512466,
+      0.17798645950570047,
+      0.19999999999999998
+    ],
+    "error_m": 0.0002400713108431282,
+    "elbow_geometric_bend_deg": 31.58380609970735,
+    "wrist_axis_bend_deg": 14.083386664031021,
+    "joint_angles_deg": {
+      "left_shoulder_pitch_joint": -58.60193707863137,
+      "left_shoulder_roll_joint": 13.980668962095848,
+      "left_shoulder_yaw_joint": 9.985344684455013,
+      "left_elbow_joint": 41.63164223662852,
+      "left_wrist_roll_joint": -0.3939429798094007,
+      "left_wrist_pitch_joint": 14.083376224192623,
+      "left_wrist_yaw_joint": 0.017324124494342737
+    },
+    "smallest_limit_margin_deg": 77.22272278530944,
+    "smooth_path_endpoint": {
+      "elbow_bend_deg": 31.49866808060179,
+      "wrist_bend_deg": 13.77946489412598,
+      "wrist_joint_angles_deg": [
+        -0.343984494940268,
+        13.779443905184456,
+        -0.024286795321869933
+      ]
+    },
+    "path_max_error_m": 0.0004999799913659014
+  },
+  "right": {
+    "target_m": [
+      0.40458862753875713,
+      -0.16640127256106163,
+      0.19999999999999998
+    ],
+    "error_m": 0.0003466380732776994,
+    "elbow_geometric_bend_deg": 30.867434770683047,
+    "wrist_axis_bend_deg": 14.221699077934604,
+    "joint_angles_deg": {
+      "right_shoulder_pitch_joint": -59.4501441207094,
+      "right_shoulder_roll_joint": -12.672873004919643,
+      "right_shoulder_yaw_joint": -9.112790579306822,
+      "right_elbow_joint": 42.3484842503997,
+      "right_wrist_roll_joint": 0.3899976917900721,
+      "right_wrist_pitch_joint": 14.221239323721099,
+      "right_wrist_yaw_joint": 0.11555123272778488
+    },
+    "smallest_limit_margin_deg": 76.50588077153826,
+    "smooth_path_endpoint": {
+      "elbow_bend_deg": 30.783374099722362,
+      "wrist_bend_deg": 13.912820239127697,
+      "wrist_joint_angles_deg": [
+        0.34700773410207136,
+        13.911956405271875,
+        0.1565878496946545
+      ]
+    },
+    "path_max_error_m": 0.0004825551386696754
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "baseline": {
+    "torso_yaw_weight": 0,
+    "world_heading_target_deg": 0,
+    "frames": 601,
+    "torso_world_yaw_deg": {
+      "rms": 4.194655669323497,
+      "max_abs": 9.852598766553859,
+      "min": -7.993667833492302,
+      "max": 9.852598766553859
+    },
+    "torso_relative_pelvis_yaw_deg": {
+      "rms": 0.6197407737342394,
+      "max_abs": 1.8236488255002574,
+      "min": -1.6176082711252529,
+      "max": 1.8236488255002574
+    },
+    "waist_yaw_deg": {
+      "rms": 0.6437773704528809,
+      "max_abs": 2.19218111038208,
+      "min": -1.9937406778335571,
+      "max": 2.19218111038208
+    },
+    "per_stage": [
+      {
+        "stage": 1,
+        "torso_world_yaw_deg": {
+          "rms": 2.162502884602274,
+          "max_abs": 5.276865945645417,
+          "min": -5.276865945645417,
+          "max": 2.6502510266906194
+        },
+        "relative_yaw_deg": {
+          "rms": 0.6316908562345623,
+          "max_abs": 1.6176082711252529,
+          "min": -1.6176082711252529,
+          "max": 0.459521477387283
+        },
+        "waist_yaw_deg": {
+          "rms": 0.6356322169303894,
+          "max_abs": 1.6350507736206055,
+          "min": -1.6350507736206055,
+          "max": 0.45940959453582764
+        }
+      },
+      {
+        "stage": 2,
+        "torso_world_yaw_deg": {
+          "rms": 4.358616045502209,
+          "max_abs": 7.993603535484755,
+          "min": -6.079405998110119,
+          "max": 7.993603535484755
+        },
+        "relative_yaw_deg": {
+          "rms": 0.43629182714755826,
+          "max_abs": 1.1419973914967347,
+          "min": -1.1419973914967347,
+          "max": 0.8616493685428567
+        },
+        "waist_yaw_deg": {
+          "rms": 0.44201603531837463,
+          "max_abs": 1.168015718460083,
+          "min": -1.168015718460083,
+          "max": 0.8997398018836975
+        }
+      },
+      {
+        "stage": 3,
+        "torso_world_yaw_deg": {
+          "rms": 5.549196398000973,
+          "max_abs": 9.852598766553859,
+          "min": -7.993667833492302,
+          "max": 9.852598766553859
+        },
+        "relative_yaw_deg": {
+          "rms": 0.7489357486302683,
+          "max_abs": 1.8236488255002574,
+          "min": -1.5653470158682499,
+          "max": 1.8236488255002574
+        },
+        "waist_yaw_deg": {
+          "rms": 0.8033045530319214,
+          "max_abs": 2.19218111038208,
+          "min": -1.9937406778335571,
+          "max": 2.19218111038208
+        }
+      }
+    ],
+    "min_pelvis_height_m": 0.7566493153572083,
+    "max_pelvis_tilt_deg": 11.745695863924727,
+    "max_urdf_joint_limit_excess_rad": 0.0,
+    "swing_force_max_n": 0.0,
+    "min_stance_force_z_n": 18.606929779052734,
+    "friction_cone_excess_max_n": 0.0,
+    "solver": {
+      "coverage_time_s": [
+        0.0,
+        20.00000000000015
+      ],
+      "logged_iterations": 3010,
+      "mpc_solves": 602,
+      "final_status_counts": {
+        "Maximum number of iterations reached": 602
+      },
+      "performanceAfterStep/dynamicsViolationSSE": {
+        "median": 1.0000547617106175e-14,
+        "p95": 1.186122754842347e-10,
+        "max": 1.621098202363153e-09
+      },
+      "performanceAfterStep/equalityConstraintsSSE": {
+        "median": 5.221729807613152e-10,
+        "p95": 5.883459573336413e-06,
+        "max": 0.0001019388249466899
+      },
+      "totalConstraintViolationAfterStep": {
+        "median": 2.2850162265942843e-05,
+        "p95": 0.0024255004669549315,
+        "max": 0.01009655614776109
+      },
+      "mean_iterations_per_solve": 5.0
+    }
+  },
+  "yaw25": {
+    "torso_yaw_weight": 25,
+    "world_heading_target_deg": 0,
+    "frames": 601,
+    "torso_world_yaw_deg": {
+      "rms": 3.9763213891282017,
+      "max_abs": 9.976808402161556,
+      "min": -8.294710194264109,
+      "max": 9.976808402161556
+    },
+    "torso_relative_pelvis_yaw_deg": {
+      "rms": 0.6556736740291688,
+      "max_abs": 1.9125035514114614,
+      "min": -1.6379566718256775,
+      "max": 1.9125035514114614
+    },
+    "waist_yaw_deg": {
+      "rms": 0.6636283993721008,
+      "max_abs": 1.8914395570755005,
+      "min": -1.7718987464904785,
+      "max": 1.8914395570755005
+    },
+    "per_stage": [
+      {
+        "stage": 1,
+        "torso_world_yaw_deg": {
+          "rms": 1.9970573019155924,
+          "max_abs": 5.020321110926753,
+          "min": -5.020321110926753,
+          "max": 3.0461671023300187
+        },
+        "relative_yaw_deg": {
+          "rms": 0.46518049757281865,
+          "max_abs": 1.3197911022163564,
+          "min": -1.3197911022163564,
+          "max": 0.5034254645688184
+        },
+        "waist_yaw_deg": {
+          "rms": 0.467810720205307,
+          "max_abs": 1.3176695108413696,
+          "min": -1.3176695108413696,
+          "max": 0.5018543004989624
+        }
+      },
+      {
+        "stage": 2,
+        "torso_world_yaw_deg": {
+          "rms": 4.150700192273752,
+          "max_abs": 8.390819630350515,
+          "min": -6.499039610860226,
+          "max": 8.390819630350515
+        },
+        "relative_yaw_deg": {
+          "rms": 0.38434262042454864,
+          "max_abs": 0.902851869734275,
+          "min": -0.8330618655490369,
+          "max": 0.902851869734275
+        },
+        "waist_yaw_deg": {
+          "rms": 0.36337319016456604,
+          "max_abs": 0.8541379570960999,
+          "min": -0.8227828741073608,
+          "max": 0.8541379570960999
+        }
+      },
+      {
+        "stage": 3,
+        "torso_world_yaw_deg": {
+          "rms": 5.268423362683147,
+          "max_abs": 9.976808402161556,
+          "min": -8.294710194264109,
+          "max": 9.976808402161556
+        },
+        "relative_yaw_deg": {
+          "rms": 0.9764287976337287,
+          "max_abs": 1.9125035514114614,
+          "min": -1.6379566718256775,
+          "max": 1.9125035514114614
+        },
+        "waist_yaw_deg": {
+          "rms": 0.9995846152305603,
+          "max_abs": 1.8914395570755005,
+          "min": -1.7718987464904785,
+          "max": 1.8914395570755005
+        }
+      }
+    ],
+    "min_pelvis_height_m": 0.756565511226654,
+    "max_pelvis_tilt_deg": 11.79691040718969,
+    "max_urdf_joint_limit_excess_rad": 0.0,
+    "swing_force_max_n": 0.0,
+    "min_stance_force_z_n": 18.604969024658203,
+    "friction_cone_excess_max_n": 0.0,
+    "solver": {
+      "coverage_time_s": [
+        0.0,
+        20.00000000000015
+      ],
+      "logged_iterations": 3010,
+      "mpc_solves": 602,
+      "final_status_counts": {
+        "Maximum number of iterations reached": 602
+      },
+      "performanceAfterStep/dynamicsViolationSSE": {
+        "median": 9.856574096401646e-15,
+        "p95": 1.2299418852321412e-10,
+        "max": 1.674732371157928e-09
+      },
+      "performanceAfterStep/equalityConstraintsSSE": {
+        "median": 5.187276928491063e-10,
+        "p95": 6.2272719391743385e-06,
+        "max": 0.0001064424571185614
+      },
+      "totalConstraintViolationAfterStep": {
+        "median": 2.277568314799435e-05,
+        "p95": 0.00249543059879113,
+        "max": 0.01031717654452674
+      },
+      "mean_iterations_per_solve": 5.0
+    }
+  }
+}

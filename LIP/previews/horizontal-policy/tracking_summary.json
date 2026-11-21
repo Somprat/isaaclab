@@ -1,0 +1,134 @@
+{
+  "sample_count": 1000,
+  "sampling_note": "Pre-action states compared with the current reference time, excluding terminal auto-reset states.",
+  "hand_frame": "torso_link",
+  "metrics": {
+    "com_position_error_m": {
+      "mean": 0.012174085193459177,
+      "rmse": 0.01347139878745133,
+      "max": 0.03488815575838089
+    },
+    "com_velocity_error_m_s": {
+      "mean": 0.09309401595033705,
+      "rmse": 0.10052915828398726,
+      "max": 0.24317136406898499
+    },
+    "left_foot_position_error_m": {
+      "mean": 0.013087562500033527,
+      "rmse": 0.015448521522145398,
+      "max": 0.042954713106155396
+    },
+    "right_foot_position_error_m": {
+      "mean": 0.012389743242471014,
+      "rmse": 0.014769072655073753,
+      "max": 0.04730415344238281
+    },
+    "left_hand_z_world_error_m": {
+      "mean": -0.18908194917440416,
+      "rmse": 0.20302139630257035,
+      "max": 1.1920928955078125e-07
+    },
+    "left_hand_position_error_m": {
+      "mean": 0.23676538879441836,
+      "rmse": 0.25420117848246515,
+      "max": 0.33503028750419617
+    },
+    "right_hand_z_world_error_m": {
+      "mean": -0.17539435350894927,
+      "rmse": 0.1885428820296035,
+      "max": 0.0014320611953735352
+    },
+    "right_hand_position_error_m": {
+      "mean": 0.22671752829250222,
+      "rmse": 0.24339743411429612,
+      "max": 0.3153305649757385
+    }
+  },
+  "motion_metrics": {
+    "com_velocity_error_m_s": {
+      "mean": 0.09309401595033705,
+      "rms": 0.10052915828398726,
+      "min": 0.0,
+      "max": 0.24317136406898499,
+      "p95_abs": 0.1564588263630867
+    },
+    "root_heading_error_rad": {
+      "mean": -0.0312026825247558,
+      "rms": 0.04166571167330356,
+      "min": -0.10594119876623154,
+      "max": 0.02683400735259056,
+      "p95_abs": 0.0818073183298111
+    },
+    "torso_heading_error_rad": {
+      "mean": 0.01608317958009502,
+      "rms": 0.04716164040563483,
+      "min": -0.07244707643985748,
+      "max": 0.09964756667613983,
+      "p95_abs": 0.09087252803146836
+    },
+    "torso_angular_velocity_x_rad_s": {
+      "mean": -0.0010470103751576971,
+      "rms": 0.36241837237215896,
+      "min": -1.4736686944961548,
+      "max": 1.4180734157562256,
+      "p95_abs": 0.8791891574859619
+    },
+    "torso_angular_velocity_y_rad_s": {
+      "mean": 0.008089062973274849,
+      "rms": 0.4484062206879624,
+      "min": -1.5473634004592896,
+      "max": 0.9115380644798279,
+      "p95_abs": 0.8247331261634825
+    },
+    "torso_angular_velocity_z_rad_s": {
+      "mean": -0.006810154594888445,
+      "rms": 0.24244621199027255,
+      "min": -0.7936084270477295,
+      "max": 0.9159369468688965,
+      "p95_abs": 0.5592635542154311
+    },
+    "torso_world_angular_velocity_x_rad_s": {
+      "mean": 0.001601082009728998,
+      "rms": 0.3385258984023319,
+      "min": -1.3617291450500488,
+      "max": 1.333497166633606,
+      "p95_abs": 0.7925332218408582
+    },
+    "torso_world_angular_velocity_y_rad_s": {
+      "mean": 0.007665579533204436,
+      "rms": 0.44189226995731096,
+      "min": -1.4596976041793823,
+      "max": 0.8712414503097534,
+      "p95_abs": 0.7983651667833326
+    },
+    "torso_world_angular_velocity_z_rad_s": {
+      "mean": -0.004039071851409972,
+      "rms": 0.28517857720992107,
+      "min": -0.9044980406761169,
+      "max": 1.166679859161377,
+      "p95_abs": 0.6768101602792734
+    },
+    "torso_angular_speed_rad_s": {
+      "mean": 0.5109208410494029,
+      "rms": 0.6254561380275282,
+      "min": 0.0,
+      "max": 2.0273585319519043,
+      "p95_abs": 1.289986729621887
+    },
+    "waist_yaw_position_rad": {
+      "mean": -0.038940381679713025,
+      "rms": 0.06728389652014252,
+      "min": -0.13562197983264923,
+      "max": 0.05169736593961716,
+      "p95_abs": 0.12540373057127
+    },
+    "waist_yaw_velocity_rad_s": {
+      "mean": -0.004155795048020081,
+      "rms": 0.3112383294490841,
+      "min": -0.9696391820907593,
+      "max": 1.1518477201461792,
+      "p95_abs": 0.6701813966035834
+    }
+  },
+  "motion_note": "Torso Euler angles are world-frame XYZ radians. torso_angular_velocity_* is torso-frame; torso_world_angular_velocity_* is world-frame (rad/s). Waist yaw velocity is joint-relative (rad/s). Hand world velocity = torso-origin translation + torso rotation cross hand offset + arm motion relative to torso. Relative velocity includes rotating-frame correction. Component speed magnitudes are not additive or causal percentages."
+}

@@ -1,0 +1,47 @@
+{
+  "left": {
+    "post7_measured_range_rad": [
+      -0.36228546500205994,
+      -0.08671008050441742
+    ],
+    "post7_command_range_rad": [
+      -0.4122854769229889,
+      -0.13671007752418518
+    ],
+    "post7_command_minus_current_mean_rad": -0.0497506032540248,
+    "post7_ik_step_range_rad": [
+      -0.050000011920928955,
+      -0.04999999701976776
+    ],
+    "post7_fraction_at_step_cap": 1.0,
+    "post7_max_abs_torque_nm": 5.3468122482299805,
+    "torque_limit_nm": 25.0
+  },
+  "right": {
+    "post7_measured_range_rad": [
+      -0.3426479399204254,
+      -0.10339279472827911
+    ],
+    "post7_command_range_rad": [
+      -0.39264795184135437,
+      -0.15180817246437073
+    ],
+    "post7_command_minus_current_mean_rad": -0.04972019330813335,
+    "post7_ik_step_range_rad": [
+      -0.050000011920928955,
+      -0.04999999701976776
+    ],
+    "post7_fraction_at_step_cap": 1.0,
+    "post7_max_abs_torque_nm": 6.145760536193848,
+    "torque_limit_nm": 25.0
+  },
+  "hard_angle_limits_rad": [
+    -3.0892,
+    2.6704
+  ],
+  "soft_angle_limits_rad": [
+    -2.80122,
+    2.3824199999999998
+  ],
+  "alignment_note": "Recorded command at t was generated from measured pose at t-dt; dt=0.02 s. Step-cap fraction uses this alignment."
+}

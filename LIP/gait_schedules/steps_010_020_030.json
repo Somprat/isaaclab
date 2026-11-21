@@ -1,0 +1,9 @@
+{
+  "duration": 20.0,
+  "transition_steps": 2,
+  "schedule": [
+    {"time": 0.0, "step_length": 0.10, "step_duration": 0.50},
+    {"time": 6.666667, "step_length": 0.20, "step_duration": 0.45},
+    {"time": 13.333333, "step_length": 0.30, "step_duration": 0.45}
+  ]
+}

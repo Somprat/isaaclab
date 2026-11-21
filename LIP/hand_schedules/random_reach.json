@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "target_frame": "torso_link",
+  "hands": "both",
+  "seed": 42,
+  "start_delay": 0.8,
+  "reach_duration": 2.0,
+  "forward_range": [0.08, 0.18],
+  "outward_range": [0.0, 0.06],
+  "up_range": [0.04, 0.12],
+  "left_target": null,
+  "right_target": null,
+  "position_tolerance": 0.00001,
+  "joint_limit_margin": 0.02,
+  "max_joint_speed": 2.0,
+  "max_ik_step": 0.1,
+  "damping": 0.01,
+  "max_iterations": 100,
+  "max_attempts": 20
+}

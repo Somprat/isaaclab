@@ -1,0 +1,11 @@
+{
+  "source": "MPC-generated trajectory; no policy inference or independent physics simulation",
+  "motion": "/wb_humanoid_mpc_ws/src/wb_humanoid_mpc/generated_motions/step_no_ramp_50_exact/reference_0031.npz",
+  "sha256": "9a74ec3266efca12ab4bbcd546bb5e7d241b33ce65e32b88705702c89a34a594",
+  "frames": 601,
+  "fps": 30.0,
+  "touchdown_detection": "Rising edges of planned contact_flags, quantized to the NPZ sampling rate",
+  "foot_position": "Recorded ankle body origin, as in the baseline CSV; not the sole contact frame",
+  "min_pelvis_height_m": 0.7554999589920044,
+  "max_pelvis_tilt_deg": 11.926825685448042
+}

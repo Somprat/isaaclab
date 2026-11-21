@@ -1,0 +1,46 @@
+{
+  "source_recording": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "hold_time_s": null,
+  "hold_frame": "torso_translation",
+  "video_written": true,
+  "preserve_original_position": true,
+  "preserve_original_orientation": false,
+  "held_world_positions": {},
+  "held_world_quaternions_wxyz": {},
+  "description": "Recorded measured body motion and online capped pose IK. World X targets move 5 cm closer via a linear 1-7 second ramp. World identity hand orientation, original Y and absolute Z retained. Exact arm placement, no physics stepping or policy inference.",
+  "post_hold_errors": {
+    "left": {
+      "horizontal_rms_m": 0.0007128085650600445,
+      "horizontal_max_m": 0.00379886408970663,
+      "orientation_max_deg": 0.8785445204238164,
+      "position_mean_m": 0.0005485002043033382,
+      "position_max_m": 0.004740495080976261
+    },
+    "right": {
+      "horizontal_rms_m": 0.0005950650511120387,
+      "horizontal_max_m": 0.0015088587924756932,
+      "orientation_max_deg": 0.03203862658939372,
+      "position_mean_m": 0.0005397900487110895,
+      "position_max_m": 0.001540389932162365
+    }
+  },
+  "world_identity_orientation_wxyz": [
+    1.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "torso_following_z": false,
+  "initial_torso_z_m": 0.8382022776603699,
+  "x_velocity_filter_tau_s": null,
+  "target_adjustment": {
+    "world_x_delta_m": -0.05,
+    "ramp_start_s": 1.0,
+    "ramp_end_s": 7.0,
+    "other_target_components": "unchanged",
+    "physics_stepping": false,
+    "policy_inference": false
+  }
+}

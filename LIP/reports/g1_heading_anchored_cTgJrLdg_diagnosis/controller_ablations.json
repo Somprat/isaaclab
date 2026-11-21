@@ -1,0 +1,177 @@
+{
+  "baseline": {
+    "max_tilt_deg": 48.01678994070158,
+    "min_height_m": 0.37432199716567993,
+    "max_com_error_m": 0.8043963313102722,
+    "late_com_mean_m": 0.32472089627017714,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 0,
+        "case": "baseline",
+        "time_s": 19.46,
+        "terms": [
+          "fallen"
+        ]
+      }
+    ]
+  },
+  "no_reach": {
+    "max_tilt_deg": 8.390705541574013,
+    "min_height_m": 0.7561447620391846,
+    "max_com_error_m": 0.027398603036999702,
+    "late_com_mean_m": 0.014154738974757492,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 1,
+        "case": "no_reach",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  },
+  "half_reach": {
+    "max_tilt_deg": 9.447934301501007,
+    "min_height_m": 0.7573587894439697,
+    "max_com_error_m": 0.029575902968645096,
+    "late_com_mean_m": 0.017081265347078444,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 2,
+        "case": "half_reach",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  },
+  "slow_reach": {
+    "max_tilt_deg": 55.146657075643226,
+    "min_height_m": 0.41794177889823914,
+    "max_com_error_m": 0.6468093991279602,
+    "late_com_mean_m": 0.2604785033446901,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 3,
+        "case": "slow_reach",
+        "time_s": 19.36,
+        "terms": [
+          "bad_orientation"
+        ]
+      }
+    ]
+  },
+  "waist_yaw_fixed": {
+    "max_tilt_deg": 35.722770453569616,
+    "min_height_m": 0.3670899569988251,
+    "max_com_error_m": 0.4739258289337158,
+    "late_com_mean_m": null,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 4,
+        "case": "waist_yaw_fixed",
+        "time_s": 5.24,
+        "terms": [
+          "fallen"
+        ]
+      }
+    ]
+  },
+  "torso_frame": {
+    "max_tilt_deg": 11.542753319943918,
+    "min_height_m": 0.7581905722618103,
+    "max_com_error_m": 0.038954634219408035,
+    "late_com_mean_m": 0.02798890519887209,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 5,
+        "case": "torso_frame",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  },
+  "yaw_only_anchor": {
+    "max_tilt_deg": 54.90204751089756,
+    "min_height_m": 0.48384711146354675,
+    "max_com_error_m": 0.5037241578102112,
+    "late_com_mean_m": null,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 6,
+        "case": "yaw_only_anchor",
+        "time_s": 17.72,
+        "terms": [
+          "bad_orientation"
+        ]
+      }
+    ]
+  },
+  "filtered_ik": {
+    "max_tilt_deg": 54.71650883718875,
+    "min_height_m": 0.4329017996788025,
+    "max_com_error_m": 0.47897446155548096,
+    "late_com_mean_m": null,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 7,
+        "case": "filtered_ik",
+        "time_s": 14.6,
+        "terms": [
+          "bad_orientation"
+        ]
+      }
+    ]
+  },
+  "freeze_arms_after_reach": {
+    "max_tilt_deg": 13.03240391754536,
+    "min_height_m": 0.7573464512825012,
+    "max_com_error_m": 0.06491699069738388,
+    "late_com_mean_m": 0.029745951779186725,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 8,
+        "case": "freeze_arms_after_reach",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  },
+  "quarter_ik_gain": {
+    "max_tilt_deg": 13.00845385922071,
+    "min_height_m": 0.7573680281639099,
+    "max_com_error_m": 0.05776304379105568,
+    "late_com_mean_m": 0.04311480706557631,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 9,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  }
+}

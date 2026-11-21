@@ -1,0 +1,19 @@
+{
+  "source": "/home/choon/isaaclab/LIP/previews/g1-world-pose-QjzheWXO-499-immediate-state",
+  "mode": "matched-ik",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "ik_iterations_per_frame": 1,
+  "max_model_position_disagreement_m": 1.3714231070618169e-06,
+  "note": "Matched-ik mode re-solves online from the previous displayed arms, recorded measured body pose, and recorded world hand targets with DLS damping 0.05, per-joint 0.05 rad correction cap, and 0.9 soft joint ranges. No physics or policy runs during replay. All-commands mode applies all recorded joint position targets; commands mode applies only arm targets.",
+  "post7": {
+    "left": {
+      "mean_error_m": 0.005583814979934177,
+      "max_error_m": 0.018347003948907956
+    },
+    "right": {
+      "mean_error_m": 0.026320016021310726,
+      "max_error_m": 0.037449729494872915
+    }
+  }
+}

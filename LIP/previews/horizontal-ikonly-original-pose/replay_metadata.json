@@ -1,0 +1,29 @@
+{
+  "source_recording": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "frames": 1000,
+  "duration_s": 20.0,
+  "hold_time_s": null,
+  "hold_frame": "torso_translation",
+  "video_written": true,
+  "preserve_original_position": true,
+  "preserve_original_orientation": true,
+  "held_world_positions": {},
+  "held_world_quaternions_wxyz": {},
+  "description": "Recorded body motion from perfect-arm-replay-source (run_5ogXH686). Original recorded position targets retained throughout. Original identity hand orientation relative to the current torso retained throughout; no world-orientation capture. Fresh pose DLS IK each frame, 0.05 rad joint correction cap, exact joint placement, no physics stepping or policy inference.",
+  "post_hold_errors": {
+    "left": {
+      "horizontal_rms_m": 0.002226160176246625,
+      "horizontal_max_m": 0.01222416958817715,
+      "orientation_max_deg": 2.9741076972262506,
+      "position_mean_m": 0.0016700739665747688,
+      "position_max_m": 0.018095966597644807
+    },
+    "right": {
+      "horizontal_rms_m": 0.0017628466338312785,
+      "horizontal_max_m": 0.0050995776655966335,
+      "orientation_max_deg": 1.1004127012797604,
+      "position_mean_m": 0.0015515163721175908,
+      "position_max_m": 0.0067228100010547544
+    }
+  }
+}

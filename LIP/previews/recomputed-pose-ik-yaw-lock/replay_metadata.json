@@ -1,0 +1,36 @@
+{
+  "source_checkpoint": "/home/choon/isaaclab/IsaacLab/logs/rsl_rl/g1_lipm_online_hands_finetune/run_5ogXH686/training/model_499.pt",
+  "source_recording": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "frames": 1000,
+  "fps": 50,
+  "duration_s": 20.0,
+  "arm_joints": [
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
+    "right_wrist_yaw_joint"
+  ],
+  "max_actual_hand_world_z_model_disagreement_m": 5.830675837703581e-07,
+  "orientation_target": "identity hand-link orientation relative to current torso (palms inward)",
+  "q_hold_capture_time_s": 7.0,
+  "locked_joints": [
+    "left_wrist_yaw_joint",
+    "right_wrist_yaw_joint"
+  ],
+  "wrist_yaw_hold_rad": [
+    0.0829813869606285,
+    0.1357964858433476
+  ],
+  "video_written": true,
+  "description": "Closed-loop kinematic diagnostic: recorded pelvis, legs, waist and world targets; arm position-and-orientation DLS IK recomputed from previous replay arm state each frame. At seven seconds wrist yaw is captured and fixed on both arms, and its columns are removed from subsequent IK solves. Remaining arm joints continue pose IK. Full q_hold is also saved; no null-space posture correction is applied. No persistent reference accumulation, physics integration, or policy execution. Damping 0.05, per-joint increment cap 0.05 rad, soft-limit factor 0.9, one solve per recorded control frame."
+}

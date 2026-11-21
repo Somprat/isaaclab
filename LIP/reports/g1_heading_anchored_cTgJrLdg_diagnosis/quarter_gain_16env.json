@@ -1,0 +1,155 @@
+{
+  "quarter_ik_gain": {
+    "max_tilt_deg": 14.016308889184975,
+    "min_height_m": 0.7556038498878479,
+    "max_com_error_m": 0.07717564702033997,
+    "late_com_mean_m": 0.03848015306401067,
+    "max_ik_ref_speed_rad_s": 2.500000476837158,
+    "events": [
+      {
+        "env": 0,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 1,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 2,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 3,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 4,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 5,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 6,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 7,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 8,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 9,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 10,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 11,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 12,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 13,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 14,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      },
+      {
+        "env": 15,
+        "case": "quarter_ik_gain",
+        "time_s": 20.0,
+        "terms": [
+          "time_out",
+          "reference_finished"
+        ]
+      }
+    ]
+  }
+}

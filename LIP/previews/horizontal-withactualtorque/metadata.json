@@ -1,0 +1,30 @@
+{
+  "source": "/home/choon/isaaclab/LIP/previews/perfect-arm-replay-source",
+  "duration_s": 20.0,
+  "physics_dt": 0.001,
+  "control_dt": 0.02,
+  "kp": 40.0,
+  "kd": 10.0,
+  "ik_step_cap_rad": 0.05,
+  "dls_damping": 0.05,
+  "persistent_accumulation": false,
+  "body_drive": "Cubic position/joint splines and RotationSpline drive mocap root weld and lower-body joint equalities; compliant external support, not free walking.",
+  "arm_dynamics": "Native torque-limited affine PD actuators; implicitfast integration. Contacts disabled for isolated arm test; native joint limits enabled.",
+  "hold": "Measured simulated XY offsets and world orientations captured at 7 seconds, original Z retained (historical replay behavior).",
+  "max_model_z_disagreement_m": 5.830675837703581e-07,
+  "body_tracking": {
+    "root_tracking_error_m": 0.0042861039697315775,
+    "lower_joint_max_error_rad": 0.021819044672376053,
+    "root_orientation_error_rad": 0.0064008573063215725
+  },
+  "post7": {
+    "left": {
+      "mean_position_error_m": 0.1885392956043061,
+      "max_position_error_m": 0.2529260878145958
+    },
+    "right": {
+      "mean_position_error_m": 0.175078670558592,
+      "max_position_error_m": 0.24018673952448014
+    }
+  }
+}
