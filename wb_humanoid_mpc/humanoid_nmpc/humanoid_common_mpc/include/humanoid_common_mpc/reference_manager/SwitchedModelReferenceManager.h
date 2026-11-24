@@ -75,9 +75,15 @@ class SwitchedModelReferenceManager : public ReferenceManager {
 
   std::shared_ptr<HandPoseReferenceManager> getHandPoseReferenceManagerPtr() { return handPoseReferenceManagerPtr_; }
 
-  // Configure before solving; immutable plan is shared by all cost clones.
-  void setStepReferencePlan(std::shared_ptr<const StepReferencePlan> plan) { stepReferencePlan_ = std::move(plan); }
-  const std::shared_ptr<const StepReferencePlan>& getStepReferencePlan() const { return stepReferencePlan_; }
+  // Configure before solving; immutable plan is shared by all cost clones. Accepts any FootReferencePlan
+  // (generated StepReferencePlan or sample-backed LipReferencePlan). Plans with a vertical reference also
+  // replace the swing planner's foot height reference.
+  void setStepReferencePlan(std::shared_ptr<const FootReferencePlan> plan) {
+    stepReferencePlan_ = std::move(plan);
+    swingTrajectoryPtr_->setVerticalReference(stepReferencePlan_ && stepReferencePlan_->hasVerticalReference() ? stepReferencePlan_
+                                                                                                               : nullptr);
+  }
+  const std::shared_ptr<const FootReferencePlan>& getStepReferencePlan() const { return stepReferencePlan_; }
 
   scalar_t getPhaseVariable(scalar_t time) const;
 
@@ -99,7 +105,7 @@ class SwitchedModelReferenceManager : public ReferenceManager {
   const MpcRobotModelBase<scalar_t>* mpcRobotModelPtr_;
   ModeSchedule modeSchedule_;
 
-  std::shared_ptr<const StepReferencePlan> stepReferencePlan_;
+  std::shared_ptr<const FootReferencePlan> stepReferencePlan_;
 
   bool armSwingReferenceActive_{false};
 

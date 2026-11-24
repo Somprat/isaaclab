@@ -30,14 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <humanoid_centroidal_mpc_ros2/MotionConditioning.h>
+#include <humanoid_centroidal_mpc_ros2/FrameHeightCost.h>
 #include <humanoid_centroidal_mpc_ros2/StepConditioning.h>
 
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <pinocchio/algorithm/center-of-mass.hpp>
 #include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
 
+#include <ocs2_core/cost/StateCost.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_mpc/MPC_MRT_Interface.h>
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
@@ -51,6 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <humanoid_common_mpc/pinocchio_model/createPinocchioModel.h>
 #include <humanoid_common_mpc/reference_manager/BreakFrequencyAlphaFilter.h>
 #include <humanoid_common_mpc/reference_manager/ProceduralMpcMotionManager.h>
+#include <humanoid_common_mpc/swing_foot_planner/LipReferencePlan.h>
 
 #include <algorithm>
 #include <array>
@@ -161,7 +166,31 @@ struct Options {
   scalar_t headingControlStiffness = 1.0;
   scalar_t upperBodyFixedProbability = 0.2;
   std::string upperBodyMode = "auto";  // Step-conditioned walking defaults to neutral targets.
+  // LIP reference mode (LIP/scripts/export_lip_to_mpc.py CSV). Exclusive with step/velocity command modes.
+  std::string lipReference;
+  bool durationGiven = false;
+  // LIP mode: torso_link origin height tracked over every MPC horizon (default target: the CSV's requested height).
+  std::optional<scalar_t> torsoOriginHeight;
+  scalar_t torsoHeightWeight = 10000.0;
+  std::vector<std::string> commandModeOptions;  // command-mode options seen on the command line
 };
+
+// CoM/foot samples exported from LIP (format lip_reference_csv_v1). Feet are MPC foot_*_contact frames.
+struct LipReference {
+  std::unordered_map<std::string, std::string> metadata;
+  scalar_t dt = 0.0;
+  scalar_t heading = 0.0;
+  // Calibrated posture the LIP reference was generated from (contact frames at z=0).
+  vector6_t initialBasePose = vector6_t::Zero();  // x, y, z, yaw, pitch, roll
+  std::unordered_map<std::string, scalar_t> initialJointPos;
+  std::vector<scalar_t> time;
+  std::vector<std::array<bool, 2>> contact;  // left, right; true = stance
+  std::vector<vector3_t> comPos, comVel;
+  std::vector<std::array<vector3_t, 2>> footPos, footVel;
+  size_t size() const { return time.size(); }
+  scalar_t duration() const { return time.back(); }
+};
+
 
 struct SmoothScalarTrajectory {
   std::vector<scalar_t> times;
@@ -233,6 +262,9 @@ struct MotionBuffers {
   std::vector<float> stepConditioning, stepConditioningRequested, stepConditioningTarget;
   std::vector<float> footReferencePos, footReferenceVel;
   std::vector<double> plannedSteps;
+  // LIP mode: reference sampled at each exported frame time, and the measured whole-body CoM.
+  std::vector<float> lipComReference, lipComVelReference, lipFootReference, lipFootVelReference, comPos;
+  std::vector<uint8_t> lipContact;
   std::vector<float> conditioning;
   std::vector<float> conditioningTarget;
   std::vector<float> commandedVelocity;
@@ -477,6 +509,19 @@ void saveClampNpz(const std::filesystem::path& path,
     entries.push_back({"planned_steps.npy", makeNumericNpy(buffers.plannedSteps, "<f8", {buffers.plannedSteps.size() / 8, 8})});
     entries.push_back({"planned_step_columns.npy", makeStringNpy({"start_s", "liftoff_s", "touchdown_s", "foot_index", "step_length_m", "step_duration_s", "touchdown_x_w", "touchdown_y_w"}, 32)});
   }
+  if (!buffers.lipComReference.empty()) {
+    const size_t n = buffers.numFrames;
+    if (buffers.lipComReference.size() != n * 3 || buffers.lipComVelReference.size() != n * 3 || buffers.comPos.size() != n * 3 ||
+        buffers.lipFootReference.size() != n * 6 || buffers.lipFootVelReference.size() != n * 6 || buffers.lipContact.size() != n * 2)
+      throw std::runtime_error("LIP reference buffers do not match exported frames.");
+    entries.push_back({"lip_com_pos_w.npy", makeNumericNpy(buffers.lipComReference, "<f4", {n, 3})});
+    entries.push_back({"lip_com_vel_w.npy", makeNumericNpy(buffers.lipComVelReference, "<f4", {n, 3})});
+    entries.push_back({"lip_foot_pos_w.npy", makeNumericNpy(buffers.lipFootReference, "<f4", {n, 2, 3})});
+    entries.push_back({"lip_foot_vel_w.npy", makeNumericNpy(buffers.lipFootVelReference, "<f4", {n, 2, 3})});
+    entries.push_back({"lip_contact.npy", makeNumericNpy(buffers.lipContact, "|u1", {n, 2})});
+    entries.push_back({"lip_foot_names.npy", makeStringNpy({"left", "right"}, 16)});
+    entries.push_back({"com_pos_w.npy", makeNumericNpy(buffers.comPos, "<f4", {n, 3})});
+  }
   if (!buffers.conditioning.empty()) {
     if (buffers.conditioning.size() != buffers.numFrames * 2 || buffers.conditioningTarget.size() != buffers.numFrames * 2 ||
         buffers.commandedVelocity.size() != buffers.numFrames * 4 || buffers.transition.size() != buffers.numFrames ||
@@ -525,6 +570,119 @@ void requirePositiveSegmentRange(scalar_t lower, scalar_t upper, const std::stri
   }
 }
 
+std::string trim(const std::string& text) {
+  const auto begin = text.find_first_not_of(" \t\r");
+  if (begin == std::string::npos) return "";
+  return text.substr(begin, text.find_last_not_of(" \t\r") - begin + 1);
+}
+
+std::vector<std::string> splitComma(const std::string& line) {
+  std::vector<std::string> fields;
+  std::stringstream stream(line);
+  std::string field;
+  while (std::getline(stream, field, ',')) fields.push_back(trim(field));
+  if (!line.empty() && line.back() == ',') fields.emplace_back();
+  return fields;
+}
+
+LipReference loadLipReference(const std::string& path) {
+  std::ifstream file(path);
+  if (!file) throw std::runtime_error("Cannot open LIP reference: " + path);
+  const std::vector<std::string> expectedColumns = {
+      "time", "left_contact", "right_contact", "com_x", "com_y", "com_z", "com_vx", "com_vy", "com_vz",
+      "left_x", "left_y", "left_z", "right_x", "right_y", "right_z",
+      "left_vx", "left_vy", "left_vz", "right_vx", "right_vy", "right_vz"};
+  const auto fail = [&](const std::string& message, size_t line = 0) {
+    throw std::runtime_error("LIP reference " + path + (line ? " line " + std::to_string(line) : std::string()) + ": " + message);
+  };
+
+  LipReference ref;
+  std::string line;
+  size_t lineNumber = 0;
+  bool headerSeen = false;
+  while (std::getline(file, line)) {
+    ++lineNumber;
+    if (trim(line).empty()) continue;
+    if (line[0] == '#') {
+      if (headerSeen) fail("metadata after the column header", lineNumber);
+      const auto colon = line.find(':');
+      if (colon == std::string::npos) fail("metadata line without 'key: value'", lineNumber);
+      ref.metadata[trim(line.substr(1, colon - 1))] = trim(line.substr(colon + 1));
+      continue;
+    }
+    const auto fields = splitComma(line);
+    if (!headerSeen) {
+      if (fields != expectedColumns) fail("unexpected column header", lineNumber);
+      headerSeen = true;
+      continue;
+    }
+    if (fields.size() != expectedColumns.size()) fail("expected " + std::to_string(expectedColumns.size()) + " fields", lineNumber);
+    std::vector<scalar_t> v(fields.size());
+    for (size_t i = 0; i < fields.size(); ++i) {
+      size_t used = 0;
+      try {
+        v[i] = std::stod(fields[i], &used);
+      } catch (const std::exception&) {
+        used = 0;
+      }
+      if (used != fields[i].size() || !std::isfinite(v[i])) fail("invalid number '" + fields[i] + "' in " + expectedColumns[i], lineNumber);
+    }
+    for (size_t i : {1, 2})
+      if (v[i] != 0.0 && v[i] != 1.0) fail(expectedColumns[i] + " must be 0 or 1", lineNumber);
+    ref.time.push_back(v[0]);
+    ref.contact.push_back({v[1] == 1.0, v[2] == 1.0});
+    ref.comPos.emplace_back(v[3], v[4], v[5]);
+    ref.comVel.emplace_back(v[6], v[7], v[8]);
+    ref.footPos.push_back({vector3_t(v[9], v[10], v[11]), vector3_t(v[12], v[13], v[14])});
+    ref.footVel.push_back({vector3_t(v[15], v[16], v[17]), vector3_t(v[18], v[19], v[20])});
+  }
+  if (!headerSeen) fail("missing column header");
+
+  const auto meta = [&](const std::string& key) {
+    const auto it = ref.metadata.find(key);
+    if (it == ref.metadata.end()) fail("missing metadata '" + key + "'");
+    return it->second;
+  };
+  if (meta("format") != "lip_reference_csv_v2") fail("format must be lip_reference_csv_v2, got " + meta("format") + " (re-export)");
+  if (meta("frame") != "world_z_up") fail("frame must be world_z_up, got " + meta("frame"));
+  ref.dt = parseScalar(meta("dt"), "dt metadata");
+  const scalar_t lipComHeight = parseScalar(meta("lip_com_height"), "lip_com_height metadata");
+  ref.heading = parseScalar(meta("heading"), "heading metadata");
+  const auto basePose = splitComma(meta("initial_base_pose_xyz_yaw_pitch_roll"));
+  if (basePose.size() != 6) fail("initial_base_pose_xyz_yaw_pitch_roll needs 6 values");
+  for (size_t i = 0; i < 6; ++i) ref.initialBasePose[i] = parseScalar(basePose[i], "initial_base_pose_xyz_yaw_pitch_roll");
+  const auto jointNames = splitComma(meta("initial_joint_names"));
+  const auto jointPos = splitComma(meta("initial_joint_pos"));
+  if (jointNames.empty() || jointNames.size() != jointPos.size()) fail("initial_joint_names/initial_joint_pos lengths differ");
+  for (size_t i = 0; i < jointNames.size(); ++i) {
+    const scalar_t q = parseScalar(jointPos[i], "initial_joint_pos");
+    if (!std::isfinite(q) || !ref.initialJointPos.emplace(jointNames[i], q).second) fail("bad or duplicate joint " + jointNames[i]);
+  }
+  if (!ref.initialBasePose.allFinite()) fail("non-finite initial base pose");
+  if (!(ref.dt > 0.0)) fail("dt must be positive");
+  if (ref.size() < 2) fail("needs at least two samples");
+  if (std::to_string(ref.size()) != meta("samples")) fail("samples metadata " + meta("samples") + " != rows " + std::to_string(ref.size()));
+  if (std::abs(ref.time.front()) > 1e-9) fail("time must start at 0");
+  for (size_t k = 1; k < ref.size(); ++k) {
+    const scalar_t step = ref.time[k] - ref.time[k - 1];
+    // The exporter keeps the final sample, so only the last interval may be shorter.
+    const bool ok = k + 1 < ref.size() ? std::abs(step - ref.dt) < 1e-6 : step > 0.0 && step < ref.dt + 1e-6;
+    if (!ok) fail("non-uniform time step " + std::to_string(step) + " at t=" + std::to_string(ref.time[k]));
+  }
+  if (std::abs(ref.duration() - parseScalar(meta("duration"), "duration metadata")) > 1e-6) fail("duration metadata does not match time");
+  if (!ref.contact.front()[0] || !ref.contact.front()[1]) fail("must start in double support");
+  for (size_t k = 0; k < ref.size(); ++k) {
+    if (!ref.contact[k][0] && !ref.contact[k][1]) fail("flight phase at t=" + std::to_string(ref.time[k]));
+    for (size_t foot = 0; foot < 2; ++foot)
+      if ((ref.contact[k][foot] && std::abs(ref.footPos[k][foot].z()) > 1e-6) || ref.footPos[k][foot].z() < -1e-6)
+        fail("stance foot off the ground or foot below it at t=" + std::to_string(ref.time[k]));
+    if (std::abs(ref.comPos[k].z() - lipComHeight) > 1e-6) fail("CoM z differs from lip_com_height at t=" + std::to_string(ref.time[k]));
+  }
+  const auto calibration = meta("height_calibration");
+  if (!std::filesystem::is_regular_file(calibration)) fail("height_calibration " + calibration + " is not visible here");
+  return ref;
+}
+
 Options parseOptions(int argc, char** argv) {
   Options options;
 
@@ -536,9 +694,25 @@ Options parseOptions(int argc, char** argv) {
   options.urdfFile = g1DescriptionShare + "/urdf/g1_29dof.urdf";
   options.gaitFile = commonMpcShare + "/config/command/gait.info";
 
+  static const std::vector<std::string> kCommandModeOptions = {
+      "--step-condition", "--condition", "--no-step-transitions", "--plateau-ratio", "--conditioned-gait",
+      "--check-conditioning", "--double-support-fraction",
+      "--vx-min", "--vx-max", "--vy-min", "--vy-max", "--yaw-rate-min", "--yaw-rate-max", "--height-min", "--height-max",
+      "--base-command-deadband", "--cmd-vel-segment-min", "--cmd-vel-segment-max", "--stance-probability",
+      "--heading-prob", "--heading-probability", "--heading_prob", "--heading-min", "--heading-max",
+      "--heading-control-stiffness"};
   for (int i = 1; i < argc; ++i) {
     const std::string arg(argv[i]);
-    if (arg == "--step-condition") {
+    if (std::find(kCommandModeOptions.begin(), kCommandModeOptions.end(), arg) != kCommandModeOptions.end()) {
+      options.commandModeOptions.push_back(arg);
+    }
+    if (arg == "--lip-reference") {
+      options.lipReference = requireValue(i, argc, argv);
+    } else if (arg == "--torso-origin-height") {
+      options.torsoOriginHeight = parseScalar(requireValue(i, argc, argv), arg);
+    } else if (arg == "--torso-height-weight") {
+      options.torsoHeightWeight = parseScalar(requireValue(i, argc, argv), arg);
+    } else if (arg == "--step-condition") {
       const auto value = requireValue(i, argc, argv);
       const auto comma = value.find(',');
       if (comma == std::string::npos || value.find(',', comma + 1) != std::string::npos)
@@ -575,6 +749,7 @@ Options parseOptions(int argc, char** argv) {
       options.output = requireValue(i, argc, argv);
     } else if (arg == "--duration") {
       options.duration = parseScalar(requireValue(i, argc, argv), arg);
+      options.durationGiven = true;
     } else if (arg == "--fps") {
       options.fps = parseScalar(requireValue(i, argc, argv), arg);
     } else if (arg == "--seed") {
@@ -625,6 +800,11 @@ Options parseOptions(int argc, char** argv) {
       options.wristSegmentMax = parseScalar(requireValue(i, argc, argv), arg);
     } else if (arg == "--help" || arg == "-h") {
       std::cout << "Usage: " << argv[0] << " [--output PATH] [--duration SEC] [--fps HZ] [--seed N] [--num-motions N]\n"
+                << "       [--lip-reference CSV] (LIP CoM/foot samples from LIP/scripts/export_lip_to_mpc.py;\n"
+                << "        excludes step, velocity-condition, and random command options; --foot-position-weight applies;\n"
+                << "        default --duration is the reference duration minus the MPC horizon)\n"
+                << "       [--torso-origin-height M] [--torso-height-weight W] (LIP mode: torso_link origin height cost over the\n"
+                << "        whole horizon; default target is the CSV requested_torso_origin_height, default weight 10000, 0 disables)\n"
                 << "       [--step-condition STEP_LENGTH_METERS,STEP_DURATION_SECONDS] (repeatable; explicit foot targets)\n"
                 << "       [--double-support-fraction P] [--foot-position-weight W] [--no-step-transitions]\n"
                 << "       [--condition VELOCITY_MPS,FULL_STRIDE_METERS] (repeatable, ordered pairs)\n"
@@ -645,6 +825,22 @@ Options parseOptions(int argc, char** argv) {
     }
   }
 
+  if (!options.lipReference.empty() && !options.commandModeOptions.empty()) {
+    std::string seen;
+    for (const auto& name : options.commandModeOptions) seen += (seen.empty() ? "" : ", ") + name;
+    throw std::runtime_error("--lip-reference cannot be combined with step, velocity-condition, or random command options (got " +
+                             seen + ").");
+  }
+  if (options.lipReference.empty() && (options.torsoOriginHeight || options.torsoHeightWeight != 10000.0)) {
+    throw std::runtime_error("--torso-origin-height/--torso-height-weight require --lip-reference.");
+  }
+  if (!std::isfinite(options.torsoHeightWeight) || options.torsoHeightWeight < 0.0 ||
+      (options.torsoOriginHeight && !(std::isfinite(*options.torsoOriginHeight) && *options.torsoOriginHeight > 0.0))) {
+    throw std::runtime_error("--torso-height-weight must be finite and >= 0; --torso-origin-height finite and positive.");
+  }
+  if (!options.lipReference.empty() && options.numMotions != 1) {
+    throw std::runtime_error("--lip-reference generates exactly one motion; drop --num-motions.");
+  }
   if (options.duration <= 0.0) {
     throw std::runtime_error("--duration must be positive.");
   }
@@ -1045,6 +1241,24 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
   CentroidalMpcInterface interface(options.taskFile, options.urdfFile, options.referenceFile, true);
   interface.getSwitchedModelReferenceManagerPtr()->setArmSwingReferenceActive(false);
 
+  std::optional<LipReference> lipReference;
+  std::optional<FrameHeightCost> torsoHeightProbe;
+  scalar_t torsoHeightTarget = 0.0;
+  if (!options.lipReference.empty()) {
+    lipReference.emplace(loadLipReference(options.lipReference));
+    torsoHeightTarget = options.torsoOriginHeight
+                            ? *options.torsoOriginHeight
+                            : parseScalar(lipReference->metadata.at("requested_torso_origin_height"), "requested_torso_origin_height");
+    torsoHeightProbe.emplace(interface.getPinocchioInterface(), interface.getMpcRobotModel(), "torso_link", torsoHeightTarget, 1.0);
+    if (options.torsoHeightWeight > 0.0) {
+      interface.getOptimalControlProblemRef().stateCostPtr->add(
+          "torsoOriginHeightCost", std::make_unique<FrameHeightCost>(interface.getPinocchioInterface(), interface.getMpcRobotModel(),
+                                                                     "torso_link", torsoHeightTarget, options.torsoHeightWeight));
+    }
+    std::cout << "[random_mpc_generator] torso_link origin height target " << torsoHeightTarget << " m, weight "
+              << options.torsoHeightWeight << (options.torsoHeightWeight > 0.0 ? "" : " (disabled)") << "\n";
+  }
+
   SqpMpc mpc(interface.mpcSettings(), interface.sqpSettings(), interface.getOptimalControlProblem(), interface.getInitializer());
   mpc.getSolverPtr()->setReferenceManager(interface.getReferenceManagerPtr());
   MPC_MRT_Interface mrt(mpc);
@@ -1064,8 +1278,24 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
 
   const auto randomizedMpcJointIndices = getRandomizedMpcJointIndices(modelSettings);
   std::unordered_map<size_t, SmoothScalarTrajectory> jointTrajectories;
+  const bool lipMode = !options.lipReference.empty();
+  if (lipMode) {
+    // Nominal leg-joint targets: the calibrated posture the LIP CoM height came from.
+    size_t legJoints = 0;
+    for (size_t i = 0; i < modelSettings.mpcModelJointNames.size(); ++i) {
+      const auto& name = modelSettings.mpcModelJointNames[i];
+      if (name.find("hip") == std::string::npos && name.find("knee") == std::string::npos && name.find("ankle") == std::string::npos) {
+        continue;
+      }
+      const auto it = lipReference->initialJointPos.find(name);
+      if (it == lipReference->initialJointPos.end()) throw std::runtime_error("LIP reference posture lacks leg joint " + name);
+      defaultMpcJointState[i] = it->second;
+      ++legJoints;
+    }
+    if (legJoints != 12) throw std::runtime_error("Expected 12 MPC leg joints, found " + std::to_string(legJoints));
+  }
   const bool neutralUpperBody = options.upperBodyMode == "neutral" ||
-      (options.upperBodyMode == "auto" && !options.stepConditions.empty());
+      (options.upperBodyMode == "auto" && (!options.stepConditions.empty() || lipMode));
   std::cout << "[random_mpc_generator] upper-body targets: " << (neutralUpperBody ? "neutral" : "random") << "\n";
   for (const size_t mpcJointIndex : randomizedMpcJointIndices) {
     // Leave the configured nominal waist/arm/wrist posture as the MPC target.
@@ -1107,7 +1337,9 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
                                                          options.headingProbability, options.headingMin, options.headingMax, rng);
 
   const auto gaitMap = getGaitMap(options.gaitFile);
-  const bool conditioned = !options.conditions.empty() || !options.stepConditions.empty();
+  const bool commandConditioned = !options.conditions.empty() || !options.stepConditions.empty();
+  // LIP mode follows the conditioned path: no gait switching, random heading, or velocity filtering.
+  const bool conditioned = commandConditioned || lipMode;
   const std::vector<ProceduralMpcMotionManager::GaitModeStateConfig> gaitModeStates{
       {"stance", -0.1, 0.1, -0.1, 0.1, 10.0, 10.0}, {"slow_walk", 0.05, 0.3, 0.05, 0.2, 0.05, 0.05},
       {"walk", 0.25, 0.5, 0.15, 0.35, 0.05, 0.05},  {"slower_trot", 0.45, 0.7, 0.3, 0.55, 0.1, 0.1},
@@ -1137,6 +1369,22 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
   SystemObservation observation;
   observation.time = 0.0;
   observation.state = interface.getInitialState();
+  if (lipReference) {
+    // Start in the calibrated posture: base pose plus every MPC joint, zero momentum.
+    vector_t joints = mpcRobotModel.getJointAngles(observation.state);
+    for (size_t i = 0; i < modelSettings.mpcModelJointNames.size(); ++i) {
+      const auto it = lipReference->initialJointPos.find(modelSettings.mpcModelJointNames[i]);
+      if (it == lipReference->initialJointPos.end()) {
+        throw std::runtime_error("LIP reference posture lacks MPC joint " + modelSettings.mpcModelJointNames[i]);
+      }
+      joints[i] = it->second;
+    }
+    observation.state.head<6>().setZero();
+    mpcRobotModel.setBasePose(observation.state, lipReference->initialBasePose);
+    mpcRobotModel.setJointAngles(observation.state, joints);
+    std::cout << "[random_mpc_generator] initial state: calibrated posture, pelvis z " << lipReference->initialBasePose[2]
+              << " m, torso_link origin z " << torsoHeightProbe->height(observation.state) << " m\n";
+  }
   observation.input = vector_t::Zero(interface.getCentroidalModelInfo().inputDim);
   observation.mode = ModeNumber::STANCE;
 
@@ -1198,6 +1446,41 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
     for (const auto& step : stepPlan->steps()) {
       buffers.plannedSteps.insert(buffers.plannedSteps.end(), {step.start, step.liftOff, step.touchDown,
           static_cast<double>(step.foot), step.command.length, step.command.duration, step.to.x(), step.to.y()});
+    }
+  }
+  PinocchioInterface comPinocchio = interface.getPinocchioInterface();
+  const auto measuredCom = [&](const vector_t& state) -> vector3_t {
+    return pinocchio::centerOfMass(comPinocchio.getModel(), comPinocchio.getData(), mpcRobotModel.getGeneralizedCoordinates(state));
+  };
+  std::shared_ptr<const LipReferencePlan> lipPlan;
+  if (lipMode) {
+    const LipReference& lip = *lipReference;
+    std::vector<LipSample> samples;
+    samples.reserve(lip.size());
+    for (size_t k = 0; k < lip.size(); ++k) {
+      samples.push_back({lip.time[k], lip.contact[k], lip.comPos[k], lip.comVel[k], lip.footPos[k], lip.footVel[k]});
+    }
+    lipPlan = std::make_shared<LipReferencePlan>(std::move(samples), lip.heading, options.footPositionWeight);
+    if (options.duration + interface.mpcSettings().timeHorizon_ > lipPlan->finalTime() + 1e-9) {
+      throw std::runtime_error("LIP reference ends at " + std::to_string(lipPlan->finalTime()) + " s; duration + MPC horizon is " +
+                               std::to_string(options.duration + interface.mpcSettings().timeHorizon_) + " s.");
+    }
+    // Contact timing (support mask), foot targets, and foot height all come from the LIP samples.
+    interface.getSwitchedModelReferenceManagerPtr()->setStepReferencePlan(lipPlan);
+    gaitSchedulePtr->updateModeSchedule(lipPlan->modeSchedule());
+
+    auto initialPinocchio = interface.getPinocchioInterface();
+    pinocchio::forwardKinematics(initialPinocchio.getModel(), initialPinocchio.getData(),
+                                 mpcRobotModel.getGeneralizedCoordinates(observation.state));
+    pinocchio::updateFramePlacements(initialPinocchio.getModel(), initialPinocchio.getData());
+    std::cout << std::setprecision(6) << std::fixed << "[random_mpc_generator] LIP plan: " << lipPlan->samples().size() << " samples, "
+              << lipPlan->modeSchedule().eventTimes.size() << " contact events, heading " << lipPlan->heading() << "\n"
+              << "[random_mpc_generator] initial MPC CoM - LIP CoM: "
+              << (measuredCom(observation.state) - lipPlan->com(0.0).first).transpose() << "\n";
+    for (size_t foot = 0; foot < 2; ++foot) {
+      const auto id = initialPinocchio.getModel().getFrameId(modelSettings.contactNames[foot]);
+      std::cout << "[random_mpc_generator] initial MPC " << modelSettings.contactNames[foot] << " - LIP foot: "
+                << (initialPinocchio.getData().oMf[id].translation() - lipPlan->sample(foot, 0.0).position).transpose() << "\n";
     }
   }
   // Initialize with the same contact schedule and foot anchors used by rollout.
@@ -1306,6 +1589,35 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
         targetState[mpcRobotModel.getBaseStartindex() + 3] = stepPlan->heading();
       }
     }
+    if (lipPlan) {
+      // CoM tracking: knots at the current time, every LIP sample inside the horizon, and the horizon end, so
+      // the solver's linear interpolation follows the samples at any query time. Normalized linear momentum
+      // is the CoM velocity. The base target is the LIP CoM minus the current CoM-to-base offset; joint
+      // targets stay the nominal ones from the calculator.
+      const scalar_t horizonEnd = time + interface.mpcSettings().timeHorizon_;
+      const vector_t nominalState = targetTrajectories.stateTrajectory.front();
+      const vector_t nominalInput = targetTrajectories.inputTrajectory.front();
+      const vector3_t comToBase = mpcRobotModel.getBasePose(observation.state).head<3>() - measuredCom(observation.state);
+      const size_t base = mpcRobotModel.getBaseStartindex();
+      scalar_array_t knots{time};
+      for (const auto& sample : lipPlan->samples()) {
+        if (sample.time > time + 1e-9 && sample.time < horizonEnd - 1e-9) knots.push_back(sample.time);
+      }
+      knots.push_back(horizonEnd);
+      TargetTrajectories lipTargets;
+      for (const scalar_t knot : knots) {
+        const auto [comPosition, comVelocity] = lipPlan->com(knot);
+        vector_t state = nominalState;
+        state.head<6>().setZero();
+        state.head<3>() = comVelocity;
+        state.segment<3>(base) = comPosition + comToBase;
+        state.segment<3>(base + 3) << lipPlan->heading(), 0.0, 0.0;
+        lipTargets.timeTrajectory.push_back(knot);
+        lipTargets.stateTrajectory.push_back(std::move(state));
+        lipTargets.inputTrajectory.push_back(nominalInput);
+      }
+      targetTrajectories = std::move(lipTargets);
+    }
     mrt.getReferenceManager().setTargetTrajectories(targetTrajectories);
 
     mrt.setCurrentObservation(observation);
@@ -1336,7 +1648,25 @@ void generateMotion(const Options& options, const std::filesystem::path& outputP
     appendBodyPoses(buffers, fullModel, fullData, bodyFrameIds, mpcRobotModel.getBasePose(observation.state), fullJointPos);
     appendContactData(buffers, mpcRobotModel, observation.input,
                       interface.getSwitchedModelReferenceManagerPtr()->getContactFlags(observation.time));
-    if (conditioned) {
+    if (lipPlan) {
+      const auto [comPosition, comVelocity] = lipPlan->com(observation.time);
+      const auto contact = lipPlan->contactFlags(observation.time);
+      const vector3_t com = measuredCom(observation.state);
+      for (size_t axis = 0; axis < 3; ++axis) {
+        buffers.lipComReference.push_back(static_cast<float>(comPosition[axis]));
+        buffers.lipComVelReference.push_back(static_cast<float>(comVelocity[axis]));
+        buffers.comPos.push_back(static_cast<float>(com[axis]));
+      }
+      for (size_t foot = 0; foot < 2; ++foot) {
+        const auto ref = lipPlan->sample(foot, observation.time);
+        for (size_t axis = 0; axis < 3; ++axis) {
+          buffers.lipFootReference.push_back(static_cast<float>(ref.position[axis]));
+          buffers.lipFootVelReference.push_back(static_cast<float>(ref.velocity[axis]));
+        }
+        buffers.lipContact.push_back(contact[foot] ? 1 : 0);
+      }
+    }
+    if (commandConditioned) {
       buffers.conditioning.insert(buffers.conditioning.end(),
                                   {static_cast<float>(condition.command.velocity), static_cast<float>(condition.command.strideLength)});
       buffers.conditioningTarget.insert(buffers.conditioningTarget.end(),
@@ -1416,7 +1746,23 @@ int runGenerationAttempt(const Options& options, const std::filesystem::path& ou
 }  // namespace
 
 int main(int argc, char** argv) {
-  const Options options = parseOptions(argc, argv);
+  Options options = parseOptions(argc, argv);  // LIP mode may set the default duration below.
+  if (!options.lipReference.empty()) {
+    const LipReference lip = loadLipReference(options.lipReference);
+    scalar_t horizon = 0.0;
+    loadData::loadCppDataType(options.taskFile, "mpc.timeHorizon", horizon);
+    if (!(lip.duration() > horizon)) {
+      throw std::runtime_error("LIP reference is shorter than the MPC horizon (" + std::to_string(horizon) + " s).");
+    }
+    // Every MPC horizon must stay inside the samples.
+    if (!options.durationGiven) options.duration = lip.duration() - horizon;
+    if (options.duration + horizon > lip.duration() + 1e-9) {
+      throw std::runtime_error("--duration " + std::to_string(options.duration) + " + MPC horizon " + std::to_string(horizon) +
+                               " s exceeds the LIP reference duration " + std::to_string(lip.duration()) + " s.");
+    }
+    std::cout << "[random_mpc_generator] LIP reference: " << options.lipReference << " (" << lip.size() << " samples, dt " << lip.dt
+              << " s, " << lip.duration() << " s, heading " << lip.heading << "); rollout duration " << options.duration << " s\n";
+  }
   if (options.checkConditioning && !options.stepConditions.empty()) {
     const StepConditioning schedule(options.stepConditions,
         static_cast<size_t>(std::floor(options.duration * options.fps)) + 1, options.fps, options.plateauRatio, !options.noStepTransitions);

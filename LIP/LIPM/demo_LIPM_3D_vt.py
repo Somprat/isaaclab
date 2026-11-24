@@ -27,6 +27,8 @@ parser.add_argument("--no-render", action="store_true", help="Roll out without p
 parser.add_argument("--output", type=Path, default=Path("LIPM_trajectory.npz"), help="Trajectory NPZ destination (saved even with --no-render)")
 parser.add_argument("--duration", type=float, default=10.0, help="Rollout duration [s]")
 parser.add_argument("--initial-state", type=Path, help="Measured G1 reset JSON; overrides CoM state and initial foot XY. Feet are projected to the ground plane.")
+parser.add_argument("--torso-com-height", type=float, default=None, help="Desired torso_link CoM height [m]; converted to whole-robot CoM height with the reset offset (whole CoM z - torso CoM z) and overrides --com-height and the initial-state CoM height")
+parser.add_argument("--height-calibration", type=Path, help="wb_humanoid_mpc torso-origin height calibration JSON (humanoid_centroidal_mpc_height_calibration). Its whole_body_com_height overrides --com-height and the --initial-state CoM height; --initial-state still supplies CoM XY/velocity and feet.")
 parser.add_argument("--startup-duration", type=float, default=0.8, help="Minimum two-foot load-transfer duration [s]; 0 disables startup")
 parser.add_argument("--max-startup-duration", type=float, default=2.0, help="Longest startup allowed if feasibility requires more time [s]")
 parser.add_argument("--gait-schedule", type=Path, help="JSON with duration, transition_steps and schedule rows")
@@ -60,6 +62,28 @@ if args.initial_state is not None:
         lateral = np.array([-np.sin(args.heading), np.cos(args.heading)])
         feet = np.asarray(measured_state["foot_pos"])
         args.step_width = abs(float((feet[0, :2] - feet[1, :2]) @ lateral))
+# Measured at G1 lipm reset: whole CoM z 0.714414 m, torso_link CoM z 1.018010 m.
+TORSO_TO_COM_Z = -0.303596
+if args.height_calibration is not None and args.torso_com_height is not None:
+    parser.error("use either --height-calibration or --torso-com-height, not both")
+height_source = "initial_state" if measured_state is not None else "com_height_argument"
+if args.height_calibration is not None:
+    calibration = json.loads(args.height_calibration.read_text())
+    if calibration.get("kind") != "g1_torso_origin_height_calibration" or calibration.get("schema_version") != 2:
+        parser.error("height-calibration must be a schema 2 g1_torso_origin_height_calibration file")
+    if not calibration.get("success"):
+        parser.error(f"height calibration did not converge (status: {calibration.get('status')})")
+    args.com_height = float(calibration["whole_body_com_height"]) - float(calibration["mean_contact_frame_height"])
+    height_source = "height_calibration"
+    print(f"Height calibration {args.height_calibration}: requested torso origin z={calibration['requested_torso_origin_height']:.6f} m, "
+          f"measured {calibration['measured_torso_origin_height']:.6f} m -> whole-body CoM height {args.com_height:.6f} m")
+if args.torso_com_height is not None:
+    height_source = "torso_com_height_offset"
+    if measured_state is not None and "torso_com_pos" in measured_state:
+        TORSO_TO_COM_Z = float(measured_state["com_pos"][2]) - float(measured_state["torso_com_pos"][2])
+    args.com_height = args.torso_com_height + TORSO_TO_COM_Z
+    print(f"Torso CoM height {args.torso_com_height:.6f} m -> whole-robot CoM height "
+          f"{args.com_height:.6f} m (offset {TORSO_TO_COM_Z:+.6f} m)")
 if args.step_width is None:
     args.step_width = 0.20
 if args.headless:
@@ -250,6 +274,7 @@ left_foot_pos = [0., args.step_width / 2, 0]
 right_foot_pos = [0., -args.step_width / 2, 0]
 if measured_state is not None:
     COM_pos_0 = list(measured_state["com_pos"])
+    COM_pos_0[2] = args.com_height  # measured height unless --height-calibration or --torso-com-height is given
     COM_v0 = np.asarray(measured_state["com_vel"][:2])
     # Single-support LIPM assumes feet on the plane; retain measured XY exactly.
     left_foot_pos = [*measured_state["foot_pos"][0][:2], 0.0]
@@ -266,6 +291,8 @@ fields = generate_reference(
     schedule=schedule, transition_steps=transition_steps,
 )
 fields["initial_state_source"] = np.array(str(args.initial_state.resolve()) if args.initial_state else "manual")
+fields["com_height_source"] = np.array(height_source)
+fields["height_calibration_source"] = np.array(str(args.height_calibration.resolve()) if args.height_calibration else "none")
 fields["initial_foot_projection"] = np.array("ground_z_zero")
 count = len(fields["time"])
 LIPM_model = SimpleNamespace(dt=float(fields["dt"]), zc=args.com_height)

@@ -30,9 +30,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <memory>
 #include <ocs2_core/reference/ModeSchedule.h>
 
 #include "humanoid_common_mpc/common/Types.h"
+#include "humanoid_common_mpc/swing_foot_planner/FootReferencePlan.h"
 #include "humanoid_common_mpc/swing_foot_planner/SplineCpg.h"
 
 namespace ocs2::humanoid {
@@ -67,6 +69,9 @@ class SwingTrajectoryPlanner {
   scalar_t getZpositionConstraint(size_t leg, scalar_t time) const;
 
   scalar_t getImpactProximityFactor(size_t leg, scalar_t time) const;
+
+  // When set, foot height position/velocity references come from this plan instead of the generated splines.
+  void setVerticalReference(std::shared_ptr<const FootReferencePlan> plan) { verticalReference_ = std::move(plan); }
 
  private:
   /**
@@ -117,6 +122,7 @@ class SwingTrajectoryPlanner {
   feet_array_t<std::vector<SplineCpg>> impactProximityTrajectories_;
   feet_array_t<std::vector<SplineCpg>> feetHeightTrajectories_;
   feet_array_t<std::vector<scalar_t>> feetHeightTrajectoriesEvents_;
+  std::shared_ptr<const FootReferencePlan> verticalReference_;
 };
 
 SwingTrajectoryPlanner::Config loadSwingTrajectorySettings(const std::string& fileName,

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <vector>
 #include <humanoid_common_mpc/gait/MotionPhaseDefinition.h>
+#include <humanoid_common_mpc/swing_foot_planner/FootReferencePlan.h>
 #include <ocs2_core/reference/ModeSchedule.h>
 
 namespace ocs2::humanoid {
@@ -24,16 +25,10 @@ struct PlannedStep {
   vector3_t from, to;
 };
 
-struct HorizontalFootReference {
-  vector3_t position;
-  vector3_t velocity;
-  double weightScale;
-};
-
 // An immutable, world-anchored plan. Commands latch at the preceding touchdown;
 // subsequent MPC horizons query the same plan rather than moving its anchors.
 // Flat ground, fixed heading, two alternating feet. Z remains with the swing planner.
-class StepReferencePlan {
+class StepReferencePlan final : public FootReferencePlan {
  public:
   StepReferencePlan(const std::array<vector3_t, 2>& initialFeet, double heading, double finalTime,
                     double doubleSupportFraction, const std::function<StepCommand(double)>& command,
@@ -77,10 +72,10 @@ class StepReferencePlan {
     }
   }
 
-  const ModeSchedule& modeSchedule() const { return modes_; }
+  const ModeSchedule& modeSchedule() const override { return modes_; }
   const std::vector<PlannedStep>& steps() const { return steps_; }
-  double positionWeight() const { return positionWeight_; }
-  double heading() const { return heading_; }
+  double positionWeight() const override { return positionWeight_; }
+  double heading() const override { return heading_; }
 
   const PlannedStep& stepAt(double time) const {
     auto it = std::upper_bound(steps_.begin(), steps_.end(), time,
@@ -90,7 +85,7 @@ class StepReferencePlan {
 
   // Normalized vertical-load reference. Unload the next swing foot during
   // existing double support; no contact-event times or step commands change.
-  std::array<double, 2> supportWeights(double time) const {
+  std::array<double, 2> supportWeights(double time) const override {
     std::array<double, 2> weights{0.5, 0.5};
     for (const auto& step : steps_) {
       if (step.command.length <= 1e-9) continue;
@@ -109,7 +104,7 @@ class StepReferencePlan {
     return weights;
   }
 
-  HorizontalFootReference sample(size_t foot, double time) const {
+  HorizontalFootReference sample(size_t foot, double time) const override {
     if (foot >= 2) throw std::out_of_range("Step plan supports two feet.");
     vector3_t position = initialFeet_[foot];
     for (const auto& s : steps_) {

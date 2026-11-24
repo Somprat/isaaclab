@@ -59,6 +59,7 @@ scalar_t SwingTrajectoryPlanner::getZaccelerationConstraint(size_t leg, scalar_t
 /******************************************************************************************************/
 
 scalar_t SwingTrajectoryPlanner::getZvelocityConstraint(size_t leg, scalar_t time) const {
+  if (verticalReference_) return verticalReference_->sample(leg, time).velocity.z();
   const auto index = lookup::findIndexInTimeArray(feetHeightTrajectoriesEvents_[leg], time);
   return feetHeightTrajectories_[leg][index].velocity(time);
 }
@@ -67,6 +68,7 @@ scalar_t SwingTrajectoryPlanner::getZvelocityConstraint(size_t leg, scalar_t tim
 /******************************************************************************************************/
 /******************************************************************************************************/
 scalar_t SwingTrajectoryPlanner::getZpositionConstraint(size_t leg, scalar_t time) const {
+  if (verticalReference_) return verticalReference_->sample(leg, time).position.z();
   const auto index = lookup::findIndexInTimeArray(feetHeightTrajectoriesEvents_[leg], time);
   return feetHeightTrajectories_[leg][index].position(time);
 }

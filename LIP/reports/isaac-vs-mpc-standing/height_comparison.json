@@ -1,0 +1,73 @@
+{
+  "configuration": "Isaac reset state written exactly to both models (root pose + 29 joints by name); kinematic, no physics",
+  "max_joint_write_error_isaac": 0.0,
+  "total_mass": {
+    "isaac": 35.11514250189066,
+    "urdf": 35.11514202
+  },
+  "pelvis_z": {
+    "isaac": 0.7842022776603699,
+    "urdf": 0.7842022776603699
+  },
+  "whole_body_com_z": {
+    "isaac": 0.7144140005111694,
+    "urdf": 0.7144139455014036,
+    "diff": 5.5009765853597514e-08,
+    "xyz_diff_norm": 5.5506986221135074e-08
+  },
+  "torso_link": {
+    "link_origin_z": {
+      "isaac": 0.8382022976875305,
+      "urdf": 0.8382022776603699
+    },
+    "isaac_body_com_z": 1.0180100202560425,
+    "urdf_merged_body_com_z": 1.0180100237020366,
+    "urdf_link_only_com_z (used by height calibration)": 0.9919212776603699,
+    "isaac_minus_link_only_z": 0.02608874259567262,
+    "mass": {
+      "isaac": 9.600000381469727,
+      "urdf_merged": 9.599999999999998,
+      "urdf_link_only": 8.562
+    }
+  },
+  "max_link_pos_diff": 1.3320267673003027e-07,
+  "max_merged_com_diff": 1.5488628726024638e-07,
+  "bodies_where_isaac_com_differs_from_link_only_by_1mm": [
+    "torso_link",
+    "left_wrist_yaw_link",
+    "right_wrist_yaw_link"
+  ],
+  "feet": {
+    "left": {
+      "isaac_sole_point_z": 9.641681351924003e-08,
+      "mpc_contact_frame": [
+        0.00899840062581124,
+        0.118506455,
+        9.615604319723747e-08
+      ],
+      "isaac_sole_point": [
+        -0.02600159937418876,
+        0.118506455,
+        9.641681351924003e-08
+      ]
+    },
+    "right": {
+      "isaac_sole_point_z": 9.641681351924003e-08,
+      "mpc_contact_frame": [
+        0.00899840062581124,
+        -0.118506455,
+        9.615604319723747e-08
+      ],
+      "isaac_sole_point": [
+        -0.02600159937418876,
+        -0.118506455,
+        9.641681351924003e-08
+      ]
+    }
+  },
+  "mpc_contact_offset_in_ankle_roll": [
+    0.035,
+    0.0,
+    -0.035
+  ]
+}

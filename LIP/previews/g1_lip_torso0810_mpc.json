@@ -1,0 +1,10 @@
+{
+  "mode": "kinematic saved-pose replay; not an independent physics stability test",
+  "motion": "/home/choon/isaaclab/wb_humanoid_mpc/generated_motions/g1_lip_torso0810_mpc.npz",
+  "frames": 565,
+  "fps": 30.0,
+  "min_pelvis_height_m": 0.7567873001098633,
+  "max_pelvis_tilt_deg": 3.217897415161133,
+  "saved_pose_fall_threshold_crossed": false,
+  "fall_threshold": "pelvis below 0.35 m or tilt above 1 radian"
+}

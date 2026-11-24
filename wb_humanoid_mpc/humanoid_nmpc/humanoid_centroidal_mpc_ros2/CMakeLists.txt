@@ -181,6 +181,15 @@ target_link_libraries(humanoid_centroidal_mpc_random_reference_generator
 )
 target_compile_options(humanoid_centroidal_mpc_random_reference_generator PUBLIC ${FLAGS})
 
+# Headless torso-CoM height calibration (standing MPC, pelvis height search)
+add_executable(humanoid_centroidal_mpc_height_calibration
+  src/CentroidalMpcHeightCalibration.cpp
+)
+ament_target_dependencies(humanoid_centroidal_mpc_height_calibration
+  ${dependencies}
+)
+target_compile_options(humanoid_centroidal_mpc_height_calibration PUBLIC ${FLAGS})
+
 # Pose Command Node
 add_executable(humanoid_centroidal_mpc_pose_command_node
   src/CentroidalMpcKeyboardPoseCommandNode.cpp
@@ -225,6 +234,9 @@ if(BUILD_TESTING)
   add_executable(test_step_reference_plan test/testStepReferencePlan.cpp)
   ament_target_dependencies(test_step_reference_plan ${dependencies})
   add_test(NAME step_reference_plan COMMAND test_step_reference_plan)
+  add_executable(test_lip_reference_plan test/testLipReferencePlan.cpp)
+  ament_target_dependencies(test_lip_reference_plan ${dependencies})
+  add_test(NAME lip_reference_plan COMMAND test_lip_reference_plan)
   find_package(ament_cmake_gtest REQUIRED)
 
 endif()
@@ -246,6 +258,7 @@ install(TARGETS
   humanoid_centroidal_mpc_reference_joint_state_node
   humanoid_centroidal_mpc_motion_reference_node
   humanoid_centroidal_mpc_random_reference_generator
+  humanoid_centroidal_mpc_height_calibration
   humanoid_centroidal_mpc_pose_command_node
   DESTINATION lib/${PROJECT_NAME}
 )
